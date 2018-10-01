@@ -1,4 +1,4 @@
-ifeq ($(shell uname -s),Darwin)
+ifeq ($(shell uname -s), Darwin)
 CXX = g++-8
 else
 CXX = g++

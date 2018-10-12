@@ -26,22 +26,36 @@ void sattolo(int *p, int N) {
 
 double measure(int N, int mode) {
     if (mode == 0) {
-        // TODO: Question 1b: Use the sattolo function to generate a random one-cycle permutation.
+        // DONE: TODO: Question 1b: Use the sattolo function to generate a random one-cycle permutation.
+        sattolo(a, N);
 
     } else if (mode == 1) {
-        // TODO: Question 1c: Initialize the permutation such that k jumps by 1 item every step (cyclically).
+        // DONE: TODO: Question 1c: Initialize the permutation such that k jumps by 1 item every step (cyclically).
+        for (int i= 0; i < MAX_N; i++)
+            a[i]= i % N;
 
     } else if (mode == 2) {
-        // TODO: Question 1d: Initialize the permutation such that k jumps by 64 bytes (cyclically).
-
+        // DONE: TODO: Question 1d: Initialize the permutation such that k jumps by 64 bytes (cyclically).
+        const int num_int_steps= 64 / sizeof(int);
+        for (int i= 0; i < MAX_N; i++)
+            a[i]= (i + num_int_steps) % N;
     }
 
-    // TODO: Question 1b: Traverse the list (make M jumps, starting from k = 0) and measure the execution time.
+    // DONE: TODO: Question 1b: Traverse the list (make M jumps, starting from k = 0) and measure the execution time.
+    const auto time_start= std::chrono::steady_clock::now();
+    volatile int k{0};
+    for (int i= 0; i < M; i++)
+    {
+        k= a[k];
+        volatile int tmp{k};
+    }
 
 
+    const auto time_end= std::chrono::steady_clock::now();
+    const std::chrono::duration<double> duration= time_end - time_start;
 
-    // TODO: Question 1b: Return execution time in seconds.
-    return 0.1;
+    // DONE: TODO: Question 1b: Return execution time in seconds.
+    return duration.count();
 }
 
 void run_mode(int mode) {
@@ -66,11 +80,11 @@ int main() {
     // Question 1b:
     run_mode(0);   // Random.
 
-    // TODO: Enable for Question 1c:
-    // run_mode(1);   // Sequential (jump by sizeof(int) bytes).
+    // DONE: TODO: Enable for Question 1c:
+    run_mode(1);   // Sequential (jump by sizeof(int) bytes).
 
-    // TODO: Enable for Question 1d:
-    // run_mode(2);   // Sequential (jump by cache line size, i.e. 64 bytes).
+    // DONE: TODO: Enable for Question 1d:
+    run_mode(2);   // Sequential (jump by cache line size, i.e. 64 bytes).
 
     return 0;
 }

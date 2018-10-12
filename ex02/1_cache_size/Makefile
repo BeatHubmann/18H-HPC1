@@ -1,4 +1,9 @@
-CXX=g++
+ifeq ($(shell uname -s), Darwin)
+CXX = g++-8
+else
+CXX = g++
+endif
+
 CXXFLAGS=-O3 -Wall -Wextra -std=c++11
 
 .PHONY: all clean run plot

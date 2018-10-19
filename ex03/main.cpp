@@ -77,6 +77,7 @@ double C2(size_t n)
       sum[thread_id] += F(x, y);  
     }   
   }
+
   for (size_t i= 1; i < num_threads; i++) // Sum up individual threads' results
     sum[0] += sum[i];
   return sum[0] / n;

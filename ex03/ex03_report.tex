@@ -37,37 +37,50 @@
 
 \subsection{Task a)}
 
-The program was implemented as instructed and is attached to this submission.
+The program was implemented as instructed and can be found attached to this submission.
+\subsubsection{Task a.1}
+An implementation based on \texttt{\#pragma omp for nowait reduction(+: sum)} was chosen. In a parallel section before the loop, each thread is assigned its own random number generator with thread-dependent seed.
+
+\subsubsection{Task a.2}
+An implementation around \texttt{\#pragma omp for nowait} was chosen. The random number generators were dealt with as in the task above. The individual threads' results were written into an unpadded vector \texttt{std::vector<double>}.
+
+\subsubsection{Task a.3}
+An approach identical to task a.2 above was chosen, except for padding the vector with the number of \texttt{double} vector elements necessary to obtain a separate 64-bit cache line for each thread.
 
 \subsection{Task b)}
-The results of running the compiled program on Euler and my own machine (a 2018 Macbook Pro) are plotted in figures~\ref{fig:1}~and~\ref{fig:2}. at the marks seen in the random task, but they are much less pronounced: While we're able to read from cache lines, reading the increasingly large arrays makes memory access a bottle neck.
+The results of running the compiled program on Euler and my own machine (a 2018 Macbook Pro) are plotted in figures~\ref{fig1}~and~\ref{fig2}. The impact on performance of false sharing is clearly evident in both plots. Also, it is in line with expectations that the performance of the implementation using padded vectors almost matches what the built in reduction method achieves.
 
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{results.png} 
 \end{center}
-\caption{blub Euler compute cluster.}
-\label{fig:1}
+\caption{Parallel Monte Carlo integration on Euler compute cluster.}
+\label{fig1}
 \end{figure}
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{results_mbp.png} 
 \end{center}
-\caption{blub 2018 Macbook Pro cluster.}
-\label{fig:2}
+\caption{Parallel Monte Carlo integration on 2018 Macbook Pro.}
+\label{fig2}
 \end{figure}
 
-
+\subsection{Task c}
+\begin{itemize}
+    \item Yes, for the amount of tasks $N$ significantly larger than the number of threads, the workload is distributed evenly among the threads. For smaller $N$ this balance might not been exactly achievable.
+    \item No, there is no perfect scaling as there is unparallelized overhead, but the modes \texttt{m=1} and \texttt{m=3} are not far off.
+    \item A serial program and a single thread OpenMP program will get the same results provided the random generator seed remains unchanged. A multi-threaded OpenMP program on the other hand may show very small differences in the order of magnitude of machine precision when compared to the serial/single-thread results. This is due to the fact that each thread's random number generator is initialized with a different seed and also due to small numerical floating point rounding errors when adding the individual thread results.
+\end{itemize}
 
 \section{Question 2}
 
 There is a problem with the global variable \texttt{pos} in the \texttt{if} statement starting on line 13: In order to write to the array \texttt{good\_members}, the value of \texttt{pos}
 must be read in line 14. This read is not protected from race conditions with the atomic write on line 17. As \texttt{\#pragma omp atomic} cannot be extended to several statements, a possible (but still ugly)
-solution would be to replace the \texttt{for} loop block from lines 12 to 19 with snippet~\ref{lst:1}.
+solution would be to replace the \texttt{for} loop block from lines 12 to 19 with snippet~\ref{lst1}.
 
-\begin{lstlisting}[float, caption='Blub', label={lst:1}]
+\begin{lstlisting}[float, caption={Proposed modification for correctness in task 2.}, label={lst1}]
     #pragma omp parallel for
     for (int i= 0; i < N; i++)
     {
@@ -83,99 +96,6 @@ solution would be to replace the \texttt{for} loop block from lines 12 to 19 wit
         }
     }
 \end{lstlisting}
-
-
-
-
-%\begin{itemize}
-%\item{Cache is empty (i.e. cold)}
-%\item{"Memory transfer" implies transfer from random access memory (DRAM) to cache (typically L3 cache)}
-%\end{itemize}
-%
-%\subsubsection{DAXPY}
-%
-%\begin{equation}
-%y = \alpha x + y \quad \alpha \in \mathbb{R}; x, y \in \mathbb{R}^{n}
-%\end{equation}
-%
-%According to table~\ref{tab:daxpy}, a DAXPY operation on $x, y \in \mathbb{R}^{n}$ requires $2n$ FLOPS and $3n$ memory accesses. By definition, \textbf{D}AXPY is a double precision operation and thus each involved element has a size of 8 bytes. The resulting total operational intensity is $I(n) = \frac{2n \: \text{FLOPS}}{3n \cdot 8 \: \text{bytes}} = \frac{1}{12} \: \text{ops/byte}$ and hence $\mathcal{O}(1)$.
-%
-%\begin{table}[ht]
-%\centering
-%\begin{tabular}{@{\extracolsep{4pt}}lcccc}
-%\toprule
-%{}  & \multicolumn{2}{c}{FLOPS} & \multicolumn{2}{c}{memory accesses}\\
-%\cmidrule{2-3}
-%\cmidrule{4-5}
-%$i = 1,2, \ldots, n$ & multiply & add & read & write \\
-%\midrule
-%$n \: \text{times\ldots} $  & 1    & 1   & 2   & 1 \\
-%\bottomrule
-%\end{tabular}
-%\caption{DAXPY operations per element $i \in \{1, 2, \ldots, n\}$}\label{tab:daxpy}
-%\end{table}
-%
-%\subsubsection{SGEMV}
-%
-%\begin{equation}
-%y = Ax + y \quad x, y \in \mathbb{R}^{n}; A \in \mathbb{R}^{n \times n}
-%\end{equation}
-%
-%According to table~\ref{tab:sgemv}, a SGEMV operation on $x, y \in \mathbb{R}^{n}$ requires $2n^2 + n$ FLOPS and $2n^2 + 2n$ memory accesses. To make things easier we focus on the asymptotic bound and only consider the second-order terms. By definition, \textbf{S}GEMV is a single precision operation and thus each involved element has a size of 4 bytes. The resulting total asymptotic operational intensity is $I(n) = \frac{2n^2\: \text{FLOPS}}{2n^2\cdot 4 \: \text{bytes}} = \frac{1}{4} \: \text{ops/byte}$ and hence $\mathcal{O}(1)$.
-%
-%\begin{table}[ht]
-%\centering
-%\begin{tabular}{@{\extracolsep{4pt}}lcccc}
-%\toprule
-%{}  & \multicolumn{2}{c}{FLOPS} & \multicolumn{2}{c}{memory accesses}\\
-%\cmidrule{2-3}
-%\cmidrule{4-5}
-%$i = 1,2, \ldots, n$ & multiply & add   & read   & write \\
-%\midrule
-%$n \: \text{times\ldots} $                    & $n$      & $n+1$ & $2n+1$ & 1 \\
-%\bottomrule
-%\end{tabular}
-%\caption{SGEMV operations per element $i \in \{1, 2, \ldots, n\}$}\label{tab:sgemv}
-%\end{table}
-%
-%
-%\subsubsection{DGEMM}
-%
-%\begin{equation}
-%C = AB + C \quad A,B,C \in \mathbb{R}^{n \times n}
-%\end{equation}
-%
-%Based on the hint given in the task description, we assume that $n$ and thus the matrices $A, B, C$ are small enough to fit in the cache concurrently and do not require multiple reads during a single DGEMM operation. According to table~\ref{tab:dgemm}, a DGEMM operation on $B, C \in \mathbb{R}^{n \times n}$ requires $2n^3 + n^2$ FLOPS and only $4n^2$ memory accesses because of the above assumption about $n$ versus cache size. As for SGMEV above, we focus on the higher order terms for the following calculations. By definition, \textbf{D}GEMM is a double precision operation and thus each involved element has a size of 8 bytes. The resulting total asymptotic operational intensity is $I(n) = \frac{2n^3\: \text{FLOPS}}{4n^2\cdot 8 \: \text{bytes}} = \frac{n}{16} \: \text{ops/byte}$ and hence $\mathcal{O}(n)$.
-%
-%\begin{table}[ht]
-%\centering
-%\begin{tabular}{@{\extracolsep{4pt}}lcccc}
-%\toprule
-%{}  & \multicolumn{2}{c}{FLOPS} & \multicolumn{2}{c}{memory accesses}\\
-%\cmidrule{2-3}
-%\cmidrule{4-5}
-%$i,j = 1,2, \ldots, n$ & multiply & add   & read   & write \\
-%\midrule
-%$n\cdot n \: \text{times\ldots} $                    & $n$      & $n+1$ & $3$ & 1 \\
-%\bottomrule
-%\end{tabular}
-%\caption{DGEMM operations per element $i, j \in \{1, 2, \ldots, n\}$}\label{tab:dgemm}
-%\end{table}
-%
-%
-%\subsection{Task b)}
-%
-%\begin{equation}
-%u_{i}^{n+1} = u_{i}^{n} + \frac{\Delta t \alpha}{\Delta x^2}(u_{i-1}^{n} - 2u_{i}^{n} + u_{i+1}^{n})
-%\label{eqn:1d_diffusion}
-%\end{equation}
-%
-%Based on equation~(\ref{eqn:1d_diffusion}) and considering that $\frac{\Delta t \alpha}{\Delta x^2}$ is a fixed value which can be precalculated and stored, there are 3 additions and 2 multiplications for a total of 5 FLOPS per grid point. As for DGEMM in the previous task, we now must make assumptions about the problem size versus the cache size (the cache size being a potential bottleneck): It would be most realistic but also most cumbersome for our calculations to assume that some part of the problem fits in a cache of limited but realistic size and that we have to deal with a mix of compulsory and capacity cache misses. At the extreme ends of the cache size-vs-problem size scale we could take up either the assumption of an infinite cache and thus only one read and one write operation per grid point or the assumption of zero cache with a worst case maximum of four reads and one write per grid point. Assuming we are dealing with double precision data (8 bytes per element), we can thus make the following estimations: $I(N)_{\text{max}} = \frac{5\: \text{FLOPS}}{2\cdot8 \: \text{bytes}}=\frac{5}{16}\: \text{ops/byte}$ and $I(N)_{\text{min}} = \frac{5\: \text{FLOPS}}{5\cdot8 \: \text{bytes}}=\frac{1}{8}\: \text{ops/byte}$ with the realistic asymptotic operational intensity bounded as in equation~(\ref{eqn:task3b}).
-%\begin{equation}
-%0.125  \: \text{ops/byte} \leq I(N) \leq 0.3125  \: \text{ops/byte}
-%\label{eqn:task3b}
-%\end{equation}
-
 
 
 %\begin{thebibliography}{99}

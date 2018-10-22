@@ -33,52 +33,101 @@
 }
 \noindent\rule{\linewidth}{2pt}
 
-\section{Question 1}
+\section{Question 1: Amdahl's Law}
+
+\subsection{Task a)}
+Disregarding the misplaced marketing hyperbole for the sake of the argument and assuming the new train route follows the bus route (i.e. has the same length),
+ we designate the section from Luzern to Rotkreuz as serial fraction:
+$f_1 = \frac{55 \text{km} - 36 \text{km}}{55 \text{km}} = 0.345$. This leaves the potential new train section as improvable fraction: $f_p = 1 - f_1 = 0.655$.
+Based on the information given, we assume that the average speed $v_b = \frac{55 \text{km}}{1.5 \text{h}} = 36.67 \text{km/h} $ of the bus 
+on the total leg LU-ZH also applies to the fraction $f_1$, whereas $v_t = 70 \text{km/h}$ is given for the train speed on the fraction $f_p$.
+This in turn gives a speedup factor $p = \frac{70 \text{km/h}}{36.67 \text{km/h}} = 1.91$.
+
+\subsubsection{Task a.i)}
+Nobody will get any improvement from the announcement per se, but if implemented, it will offer a speedup of 1.453 as seen from equation~\ref{eqn:1}.
+In other words, the ideal one-way journey time will reduce from 90 minutes to 62 minutes.
+
+\begin{equation}
+    S_p = \frac{1}{f_1 + \frac{f_p}{p}} = \frac{1}{0.345 + \frac{0.655}{1.91}} = 1.453
+\label{eqn:1}
+\end{equation}
+
+\subsubsection{Task a.ii)}
+Again using equation~\ref{eqn:1}, this time with a (rounded) speedup factor of $p = 3 \cdot 10^7$, we get a theoretical speedup of 2.9 and thus
+a one-way journey time of about 30 minutes.
+
+\subsection{Task b)}
+As per the task description, we disregard hyperthreading and thus plainly assume 12 CPU cores per socket. Also, we are given that 
+$f_p = 0.9$ and thus $f_1 = 1 - f_p = 0.1$. Finally, we assume that the code currently is in serialized form running on a single core.
+
+\subsubsection{Task b.i)}
+The desired speedup is given as $S_p = 8$. Solving equation~\ref{eqn:1} for $p$, 
+we get that the desired speedup from serial execution requires a minimum of 36 cores (equation~\ref{eqn:2}).
+
+\begin{equation}
+    p = \frac{S_p \cdot f_p}{1 - S_p \cdot f_1 } = \frac{8 \cdot 0.9}{1 - 8 \cdot 0.1} = 36
+\label{eqn:2}
+\end{equation}
+
+\subsubsection{Task b.ii)}
+As we need three full sockets (36 / 12 = 3), but sockets only come paired up as nodes, we require two nodes. As we then might as well
+use them completely, the obtainable speed up is, again using equation~\ref{eqn:1}, $S_{p=48} = \frac{1}{0.1 + \frac{0.9}{48}} = 8.42$.
+
+\subsubsection{Task b.iii)}
+The price for additional nodes can safely be assumed to be non-negligible. It can therefore credibly be argued that buying more nodes doesn't 
+make any sense, as obviously even for $p \rightarrow \infty$ the absolute best obtainable speedup would be
+ $\lim_{p \rightarrow \infty} S_p = \frac{1}{0.1 + \frac{0.9}{p}} = 10$.
+
+% \begin{figure}[ht]
+% \begin{center}
+% \includegraphics[scale=0.5]{results.png} 
+% \end{center}
+% \caption{Parallel Monte Carlo integration on Euler compute cluster.}
+% \label{fig1}
+% \end{figure}
+
+\section{Question 2: Manual Vectorization of Reduction Operator}
+
+Blub
 
 \subsection{Task a)}
 
-The program was implemented as instructed and can be found attached to this submission.
-\subsubsection{Task a.1}
-An implementation based on \texttt{\#pragma omp for nowait reduction(+: sum)} was chosen. In a parallel section before the loop, each thread is assigned its own random number generator with thread-dependent seed.
-
-\subsubsection{Task a.2}
-An implementation around \texttt{\#pragma omp for nowait} was chosen. The random number generators were dealt with as in the task above. The individual threads' results were written into an unpadded vector \texttt{std::vector<double>}.
-
-\subsubsection{Task a.3}
-An approach identical to task a.2 above was chosen, except for padding the vector with the number of \texttt{double} vector elements necessary to obtain a separate 64-bit cache line for each thread.
 
 \subsection{Task b)}
-The results of running the compiled program on Euler and my own machine (a 2018 Macbook Pro) are plotted in figures~\ref{fig1}~and~\ref{fig2}. The impact on performance of false sharing is clearly evident in both plots. Also, it is in line with expectations that the performance of the implementation using padded vectors almost matches what the built in reduction method achieves.
+
+\subsection{Task c)}
+
+\subsubsection{Task c.i)}
+Blub
+
+\subsubsection{Task c.ii)}
+Blub
 
 
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[scale=0.5]{results.png} 
-\end{center}
-\caption{Parallel Monte Carlo integration on Euler compute cluster.}
-\label{fig1}
-\end{figure}
+% \begin{figure}[ht]
+% \begin{center}
+% \includegraphics[scale=0.5]{results.png} 
+% \end{center}
+% \caption{Parallel Monte Carlo integration on Euler compute cluster.}
+% \label{fig1}
+% \end{figure}
 
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[scale=0.5]{results_mbp.png} 
-\end{center}
-\caption{Parallel Monte Carlo integration on 2018 Macbook Pro.}
-\label{fig2}
-\end{figure}
+\section{Question 3}
 
-\subsection{Task c}
-\begin{itemize}
-    \item Yes, for the amount of tasks $N$ significantly larger than the number of threads, the workload is distributed evenly among the threads. For smaller $N$ this balance might not been exactly achievable.
-    \item No, there is no perfect scaling as there is unparallelized overhead, but the modes \texttt{m=1} and \texttt{m=3} are not far off.
-    \item A serial program and a single thread OpenMP program will get the same results provided the random generator seed remains unchanged. A multi-threaded OpenMP program on the other hand may show very small differences in the order of magnitude of machine precision when compared to the serial/single-thread results. This is due to the fact that each thread's random number generator is initialized with a different seed and also due to small numerical floating point rounding errors when adding the individual thread results.
-\end{itemize}
+Blub
 
-\section{Question 2}
+\subsection{Task a)}
 
-There is a problem with the global variable \texttt{pos} in the \texttt{if} statement starting on line 13: In order to write to the array \texttt{good\_members}, the value of \texttt{pos}
-must be read in line 14. This read is not protected from race conditions with the atomic write on line 17. As \texttt{\#pragma omp atomic} cannot be extended to several statements, a possible (but still ugly)
-solution would be to replace the \texttt{for} loop block from lines 12 to 19 with snippet~\ref{lst1}.
+
+\subsection{Task b)}
+
+\subsection{Task c)}
+
+\subsection{Task d)}
+
+\subsection{Task e)}
+
+\subsection{Task f)}
 
 \begin{lstlisting}[float, caption={Proposed modification for correctness in task 2.}, label={lst1}]
     #pragma omp parallel for

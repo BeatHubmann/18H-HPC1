@@ -40,6 +40,13 @@ static void gemm_serial(const T* const A, const T* const B, T* const C,
     // different types T.  Note: A working code can be achieved with ~10 more
     // lines of code.
     ///////////////////////////////////////////////////////////////////////////
+    for (int i= 0; i < p; i++)
+        for (int j= 0; j < q; j++)
+        {
+            C[i * q + j]= (T)0;
+            for (int k= 0; k < r; k++)
+                C[i * q + j] += A[i * r + k] * B[k * q + j];   
+        }
 }
 
 /**

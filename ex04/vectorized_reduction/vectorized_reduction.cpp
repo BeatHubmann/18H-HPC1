@@ -122,6 +122,20 @@ static inline float sse_red_4(const float* const ary, const size_t N)
     // the xmmintrin.h header above.  The Intel intrinsics guide is a helpful
     // reference: https://software.intel.com/sites/landingpage/IntrinsicsGuide
     ///////////////////////////////////////////////////////////////////////////
+    const size_t simd_width= 16 / sizeof(float); // evaluates to 4
+
+    __m128 vector_sum= _mm_set_ps1(0.0); // 128-bit register to hold partial sums
+    for (size_t i= 0; i < N; i += simd_width)
+    {
+        __m128 vector= _mm_load_ps(ary + i);
+        vector_sum= _mm_add_ps(vector_sum, vector);
+    }
+    __m128 vector_temp= _mm_set_ps1(0.0);
+    vector_temp= _mm_movehl_ps(vector_sum, vector_temp);
+    vector_sum= _mm_add_ps(vector_sum, vector_temp);
+
+    _mm_shuffle_ps 
+
     return 0.0; // the function returns the summation of all elemnts in ary
 }
 
@@ -140,6 +154,7 @@ static inline double sse_red_2(const double* const ary, const size_t N)
     // here.  Note this code is very similar to what you do in sse_red_4 for
     // the 4-way SIMD case (floats)
     ///////////////////////////////////////////////////////////////////////////
+
     return 0.0; // the function returns the summation of all elemnts in ary
 }
 
@@ -169,6 +184,8 @@ void benchmark_omp(const size_t N, T(*func)(const T* const, const size_t), const
     // above.
     ///////////////////////////////////////////////////////////////////////////
 
+    initialize(ary, nthreads * N, 42);
+
     // reference (sequential)
     T res_gold = gold_red(ary, nthreads*N); // warm-up
     auto t1 = Clock::now();
@@ -186,6 +203,17 @@ void benchmark_omp(const size_t N, T(*func)(const T* const, const size_t), const
     // TODO: Write the benchmarking code for the test kernel 'func' here.  See
     // the serial implementation 'benchmark_serial' above to get an idea.
     ///////////////////////////////////////////////////////////////////////////
+
+    (*func)(ary, N); // warm-up
+    auto tt1 = Clock::now();
+    // again 10 samples this time with OpenMP REMEMBER NUMA TBD
+    
+    # pragma omp parallel for
+    for (int i = 0; i < 10; ++i)
+        gres += (*func)(ary, N);
+
+    auto tt2 = Clock::now();
+    gt = chrono::duration_cast<chrono::nanoseconds>(tt2 - tt1).count();
 
     // Report
     cout << test_name << ": got " << nthreads << " threads" << endl;

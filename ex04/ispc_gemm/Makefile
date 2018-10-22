@@ -3,12 +3,16 @@
 # Description: Compile targets
 # Copyright 2018 ETH Zurich. All Rights Reserved.
 CXX ?= g++
+ifeq ($(shell uname -s), Darwin)
+	CXX = g++-8
+endif
+
 CXXFLAGS ?= -Wall -Wextra -pedantic -std=c++11
 ISPC ?= ispc
 ###############################################################################
 # TODO: Complete the ISPC flags.  You need to specify the architecture for
 # which you want to compile code here.  Check out 'ispc --help'
-ISPCFLAGS ?=
+ISPCFLAGS ?= --arch=x86-64 
 ###############################################################################
 
 # prec=single --> single precision (32bit floats)
@@ -24,12 +28,12 @@ extra ?=
 
 .PHONY: clean install_ispc_linux_x86_64 job
 
-ifeq ("$(prec)", "single")
+ifeq ($(prec), single)
 CXXFLAGS  += -D_SINGLE_PRECISION_
 ISPCFLAGS += -D_SINGLE_PRECISION_
 endif
 
-ifeq ("$(debug)", "false")
+ifeq ($(debug), false)
 CXXFLAGS  += -O2 -DNDEBUG
 ISPCFLAGS += -O2 -DNDEBUG --opt=disable-assertions
 else
@@ -54,7 +58,7 @@ gemm_serial: gemm.cpp
 # output filename and the -h option creates a header file (which is the one we
 # include in our application code gemm.cpp).
 gemm_sse2.o: gemm.ispc
-	$(ISPC) $(ISPCFLAGS) $(extra) -D_ISPC_SSE2_ \
+	$(ISPC) $(ISPCFLAGS) $(extra) --target=sse2 -D_ISPC_SSE2_ \
 		-o gemm_sse2.o -h gemm_sse2.h $<
 ###############################################################################
 
@@ -65,7 +69,7 @@ gemm_sse2.o: gemm.ispc
 # output filename and the -h option creates a header file (which is the one we
 # include in our application code gemm.cpp).
 gemm_avx2.o: gemm.ispc
-	$(ISPC) $(ISPCFLAGS) $(extra) -D_ISPC_AVX2_ \
+	$(ISPC) $(ISPCFLAGS) $(extra) --target=avx2 -D_ISPC_AVX2_ \
 		-o gemm_avx2.o -h gemm_avx2.h $<
 ###############################################################################
 

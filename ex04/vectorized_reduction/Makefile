@@ -3,9 +3,13 @@
 # Description: Compile targets
 # Copyright 2018 ETH Zurich. All Rights Reserved.
 CXX ?= g++
+ifeq ($(shell uname -s), Darwin)
+	CXX = g++-8
+endif
+
 ###############################################################################
 # TODO: Fill in the compiler flags.  Make sure you compile SSE code
-CXXFLAGS =
+CXXFLAGS = -Wall -Wextra -pedantic -std=c++11 -msse2
 ###############################################################################
 
 # debug=true --> use assertions for debugging
@@ -13,10 +17,10 @@ debug ?= false
 
 .PHONY: clean measurement
 
-ifeq ("$(debug)", "false")
+ifeq ($(debug), false)
 ###############################################################################
 # TODO: You may want to add flags here?
-CXXFLAGS += -DNDEBUG
+CXXFLAGS += -DNDEBUG -O2
 ###############################################################################
 else
 CXXFLAGS += -O0 -g
@@ -27,7 +31,8 @@ endif
 # code using the flags you set in CXXFLAGS.  Be sure that the generated
 # executable is named 'vec_red' in order to use the BASH script
 # measure_speedup.sh later on.
-vec_red:
+vec_red: vectorized_reduction.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^
 ###############################################################################
 
 # You can submit a job on euler using this target.  It depends on the 'vec_red'

@@ -16,17 +16,18 @@
  * @param q Dimensional parameter
  */
 /* TODO: Missing piece */
+export 
 #ifdef _ISPC_SSE2_
 void gemm_sse2(
 #else
 void gemm_avx2(
 #endif /* _ISPC_SSE2_ */
-        const /* TODO: Missing piece */ A,
-        const /* TODO: Missing piece */ B,
-        /* TODO: Missing piece */ C,
-        const /* TODO: Missing piece */ int p,
-        const /* TODO: Missing piece */ int r,
-        const /* TODO: Missing piece */ int q)
+        const uniform Real* const uniform A,
+        const uniform Real* const uniform B,
+              uniform Real* const uniform C,
+        const uniform int p,
+        const uniform int r,
+        const uniform int q)
 {
     ///////////////////////////////////////////////////////////////////////////
     // TODO: Write your ISPC implementation of a matrix-matrix multiplication
@@ -40,4 +41,12 @@ void gemm_avx2(
     // can compile for two different targets (SSE2 and AVX2) and link both of
     // them to our application code in 'gemm.cpp'.
     ///////////////////////////////////////////////////////////////////////////
+    
+    foreach (i= 0 ... p, j= 0 ... q)
+    {
+        Real element_sum= 0;
+        for (int k= 0; k < r; k++)
+            element_sum += A[i * r + k] * B[k * q + j];
+        C[i * q + j]= element_sum;
+    }
 }

@@ -40,13 +40,27 @@ static void gemm_serial(const T* const A, const T* const B, T* const C,
     // different types T.  Note: A working code can be achieved with ~10 more
     // lines of code.
     ///////////////////////////////////////////////////////////////////////////
-    for (int i= 0; i < p; i++)
-        for (int j= 0; j < q; j++)
-        {
-            C[i * q + j]= (T)0;
-            for (int k= 0; k < r; k++)
-                C[i * q + j] += A[i * r + k] * B[k * q + j];   
-        }
+    //
+    // Naive would be:
+    //
+    // for (int i= 0; i < p; i++)
+    //     for (int j= 0; j < q; j++)
+    //     {
+    //         C[i * q + j]= (T)0;
+    //         for (int k= 0; k < r; k++)
+    //             C[i * q + j] += A[i * r + k] * B[k * q + j];   
+    //     }
+    
+    // Tiled version:
+    memset(C, 0, p * q * sizeof(T));
+    const int tile_size{64};
+    for (int i_outer= 0; i_outer < p; i_outer += tile_size)
+        for (int j_outer= 0; j_outer < q; j_outer += tile_size)
+            for (int k_outer= 0; k_outer < q; k_outer += tile_size)
+                for (int i= i_outer; i < std::min(p, i_outer + tile_size); i++)
+                    for (int j= j_outer; j < std::min(q, j_outer + tile_size); j++)
+                        for (int k= k_outer; k < std::min(r, k_outer + tile_size); k++)
+                            C[i * q + j] += A[i * r + k] * B[k * q + j];
 }
 
 /**

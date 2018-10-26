@@ -9,7 +9,7 @@ endif
 
 ###############################################################################
 # TODO: Fill in the compiler flags.  Make sure you compile SSE code
-CXXFLAGS = -Wall -Wextra -pedantic -std=c++11 -msse2
+CXXFLAGS = -Wall -Wextra -pedantic -std=c++11 -msse2 -fopenmp
 ###############################################################################
 
 # debug=true --> use assertions for debugging

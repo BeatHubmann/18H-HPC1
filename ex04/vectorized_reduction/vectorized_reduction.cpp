@@ -130,15 +130,10 @@ static inline float sse_red_4(const float* const ary, const size_t N)
         __m128 vector= _mm_load_ps(ary + i);
         vector_sum= _mm_add_ps(vector_sum, vector);
     }
-    __m128 vector_temp= _mm_set_ps1(0.0);
-    vector_temp= _mm_movehl_ps(vector_sum, vector_temp);
-    vector_sum= _mm_add_ps(vector_sum, vector_temp);
-
-    _mm_shuffle_ps 
-
-    return 0.0; // the function returns the summation of all elemnts in ary
+    const __m128 tmp= _mm_add_ps(vector_sum, _mm_movehl_ps(vector_sum, vector_sum));
+    const __m128 sum= _mm_add_ss(tmp, _mm_shuffle_ps(tmp, tmp, 1));
+    return _mm_cvtss_f32(sum); // the function returns the summation of all elemnts in ary
 }
-
 /**
  * @brief Vectorized reduction kernel using SSE intrinsics (2-way SIMD)
  *
@@ -154,8 +149,16 @@ static inline double sse_red_2(const double* const ary, const size_t N)
     // here.  Note this code is very similar to what you do in sse_red_4 for
     // the 4-way SIMD case (floats)
     ///////////////////////////////////////////////////////////////////////////
+    const size_t simd_width= 16 / sizeof(double); // evaluates to 2
 
-    return 0.0; // the function returns the summation of all elemnts in ary
+    __m128d vector_sum= _mm_set_pd1(0.0); // 128-bit register to hold partial sums
+    for (size_t i= 0; i < N; i += simd_width)
+    {
+        __m128d vector= _mm_load_pd(ary + i);
+        vector_sum= _mm_add_pd(vector_sum, vector);
+    }
+    const __m128d sum= _mm_add_pd(vector_sum, _mm_shuffle_pd(vector_sum, vector_sum, 1));
+    return _mm_cvtsd_f64(sum); // the function returns the summation of all elemnts in ary
 }
 
 /**
@@ -183,8 +186,9 @@ void benchmark_omp(const size_t N, T(*func)(const T* const, const size_t), const
     // TODO: Initialize the array 'ary' using the 'initialize' function defined
     // above.
     ///////////////////////////////////////////////////////////////////////////
-
-    initialize(ary, nthreads * N, 42);
+    #pragma omp parallel for schedule(static) 
+    for (size_t i= 0; i < nthreads; i++)
+        initialize(&ary[i * N], N, omp_get_thread_num());
 
     // reference (sequential)
     T res_gold = gold_red(ary, nthreads*N); // warm-up
@@ -204,14 +208,17 @@ void benchmark_omp(const size_t N, T(*func)(const T* const, const size_t), const
     // the serial implementation 'benchmark_serial' above to get an idea.
     ///////////////////////////////////////////////////////////////////////////
 
-    (*func)(ary, N); // warm-up
+    gres= (*func)(ary, nthreads * N); // warm-up
     auto tt1 = Clock::now();
-    // again 10 samples this time with OpenMP REMEMBER NUMA TBD
-    
-    # pragma omp parallel for
+    // again 10 samples this time with OpenMP 
     for (int i = 0; i < 10; ++i)
-        gres += (*func)(ary, N);
-
+        {
+            T res{0};
+            # pragma omp parallel for schedule(static) reduction(+:res)
+            for (size_t i= 0; i < nthreads; i++)
+                res= (*func)(&ary[i * N], N);
+            gres += res;
+        }
     auto tt2 = Clock::now();
     gt = chrono::duration_cast<chrono::nanoseconds>(tt2 - tt1).count();
 

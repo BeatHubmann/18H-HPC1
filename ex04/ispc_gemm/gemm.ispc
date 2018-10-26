@@ -41,12 +41,17 @@ void gemm_avx2(
     // can compile for two different targets (SSE2 and AVX2) and link both of
     // them to our application code in 'gemm.cpp'.
     ///////////////////////////////////////////////////////////////////////////
-    
+	
+
+	Real* B_t= new Real[r * q];
+	foreach (i= 0 ... q, j= 0 ... r)
+		B_t[i + j * r]= B[i * q + j];	
+	 
     foreach (i= 0 ... p, j= 0 ... q)
     {
         Real element_sum= 0;
         for (int k= 0; k < r; k++)
-            element_sum += A[i * r + k] * B[k * q + j];
-        C[i * q + j]= element_sum;
+            element_sum += A[i * p + k] * B_t[k + j * q];
+        C[i * p + j]= element_sum;
     }
 }

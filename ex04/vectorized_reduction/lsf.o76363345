@@ -1,0 +1,4404 @@
+Sender: LSF System <lsfadmin@eu-c7-074-02>
+Subject: Job 76363345: <#!/usr/bin/env bash;# File       : measure_speedup.sh;# Created    : Tue Oct 16 2018 05:04:54 PM (+0200);# Description: Measure vectorized speedup with multiple cores.  Once you have;#              completed your code, you can run this script with;#;#              make measurement;#;#              using the 'measurement' target in the Makefile.  It will;#              schedule a job on a compute node on euler.  See the Makefile.;# Copyright 2018 ETH Zurich. All Rights Reserved.;export OMP_DYNAMIC='false';export OMP_PROC_BIND='true'; get_sample();{;    result="${1}"; shift;    sample="/tmp/sample${RANDOM}.out";     sleep 3 # creates some space between measurements;    ./vec_red | tee ${sample} # run vectorized reduction code;     small_2way="$(awk 'NR==26 {print $2}' ${sample})";    small_4way="$(awk 'NR==20 {print $2}' ${sample})";    large_2way="$(awk 'NR==53 {print $2}' ${sample})";    large_4way="$(awk 'NR==47 {print $2}' ${sample})";     rm -f ${sample};    echo "${small_2way} ${small_4way} ${large_2way} ${large_4way}" >> ${result};}; for threads in 1 2 4 8 12 16 20 24;do;    export OMP_NUM_THREADS=${threads};    printf -v result "/tmp/threads${LSB_JOBID}_%03d" "${threads}";    for sample in $(seq 10) # collect 10 samples (~30 seconds to collect all);    do;        get_sample ${result};    done;done; # make plot;module load new;module load python/3.6.1;python plot_speedup.py \;    --prefix "${LSB_JOBID}" \;    --measurements /tmp/threads${LSB_JOBID}_* && \;    rm -f /tmp/threads${LSB_JOBID}_* # clean up> in cluster <euler> Done
+
+Job <#!/usr/bin/env bash;# File       : measure_speedup.sh;# Created    : Tue Oct 16 2018 05:04:54 PM (+0200);# Description: Measure vectorized speedup with multiple cores.  Once you have;#              completed your code, you can run this script with;#;#              make measurement;#;#              using the 'measurement' target in the Makefile.  It will;#              schedule a job on a compute node on euler.  See the Makefile.;# Copyright 2018 ETH Zurich. All Rights Reserved.;export OMP_DYNAMIC='false';export OMP_PROC_BIND='true'; get_sample();{;    result="${1}"; shift;    sample="/tmp/sample${RANDOM}.out";     sleep 3 # creates some space between measurements;    ./vec_red | tee ${sample} # run vectorized reduction code;     small_2way="$(awk 'NR==26 {print $2}' ${sample})";    small_4way="$(awk 'NR==20 {print $2}' ${sample})";    large_2way="$(awk 'NR==53 {print $2}' ${sample})";    large_4way="$(awk 'NR==47 {print $2}' ${sample})";     rm -f ${sample};    echo "${small_2way} ${small_4way} ${large_2way} ${large_4way}" >> ${result};}; for threads in 1 2 4 8 12 16 20 24;do;    export OMP_NUM_THREADS=${threads};    printf -v result "/tmp/threads${LSB_JOBID}_%03d" "${threads}";    for sample in $(seq 10) # collect 10 samples (~30 seconds to collect all);    do;        get_sample ${result};    done;done; # make plot;module load new;module load python/3.6.1;python plot_speedup.py \;    --prefix "${LSB_JOBID}" \;    --measurements /tmp/threads${LSB_JOBID}_* && \;    rm -f /tmp/threads${LSB_JOBID}_* # clean up> was submitted from host <eu-login-21-ng> by user <bhubmann> in cluster <euler> at Fri Oct 26 16:11:45 2018
+Job was executed on host(s) <24*eu-c7-074-02>, in queue <normal.4h>, as user <bhubmann> in cluster <euler> at Fri Oct 26 16:14:56 2018
+</cluster/home/bhubmann> was used as the home directory.
+</cluster/home/bhubmann/OwnRepos/18H-HPC1/ex04/vectorized_reduction> was used as the working directory.
+Started at Fri Oct 26 16:14:56 2018
+Terminated at Fri Oct 26 16:20:08 2018
+Results reported at Fri Oct 26 16:20:08 2018
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/usr/bin/env bash
+# File       : measure_speedup.sh
+# Created    : Tue Oct 16 2018 05:04:54 PM (+0200)
+# Description: Measure vectorized speedup with multiple cores.  Once you have
+#              completed your code, you can run this script with
+#
+#              make measurement
+#
+#              using the 'measurement' target in the Makefile.  It will
+#              schedule a job on a compute node on euler.  See the Makefile.
+# Copyright 2018 ETH Zurich. All Rights Reserved.
+export OMP_DYNAMIC='false'
+export OMP_PROC_BIND='true'
+
+get_sample()
+{
+    result="${1}"; shift
+    sample="/tmp/sample${RANDOM}.out"
+
+    sleep 3 # creates some space between measurements
+    ./vec_red | tee ${sample} # run vectorized reduction code
+
+    small_2way="$(awk 'NR==26 {print $2}' ${sample})"
+    small_4way="$(awk 'NR==20 {print $2}' ${sample})"
+    large_2way="$(awk 'NR==53 {print $2}' ${sample})"
+    large_4way="$(awk 'NR==47 {print $2}' ${sample})"
+
+    rm -f ${sample}
+    echo "${small_2way} ${small_4way} ${large_2way} ${large_4way}" >> ${result}
+}
+
+for threads in 1 2 4 8 12 16 20 24
+do
+    export OMP_NUM_THREADS=${threads}
+    printf -v result "/tmp/threads${LSB_JOBID}_%03d" "${threads}"
+    for sample in $(seq 10) # collect 10 samples (~30 seconds to collect all)
+    do
+        get_sample ${result}
+    done
+done
+
+# make plot
+module load new
+module load python/3.6.1
+python plot_speedup.py \
+    --prefix "${LSB_JOBID}" \
+    --measurements /tmp/threads${LSB_JOBID}_* && \
+    rm -f /tmp/threads${LSB_JOBID}_* # clean up
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   256.98 sec.
+    Max Memory :                                 201 MB
+    Average Memory :                             57.23 MB
+    Total Requested Memory :                     24576.00 MB
+    Delta Memory :                               24375.00 MB
+    Max Swap :                                   -
+    Max Processes :                              5
+    Max Threads :                                29
+    Run time :                                   333 sec.
+    Turnaround time :                            503 sec.
+
+The output (if any) follows:
+
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02095
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0116
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.6582
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.87771
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.26539
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98775
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97297
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98646
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.06705
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01658
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.5244
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.93142
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.13159
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98982
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            4.05979
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98413
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.01908
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98132
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            5.54329
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.91155
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.24528
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98959
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.96699
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98662
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03233
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.014
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.65091
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.93346
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.14961
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98847
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97302
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98671
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.01996
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96203
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.78885
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.93806
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.21054
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.9104
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97167
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98865
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02242
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0215
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.59385
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.89525
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.26645
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99088
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97114
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98622
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02092
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01365
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.66283
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.89106
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.18601
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.9912
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            4.05436
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98684
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.91138
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98265
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.79358
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.93995
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.21189
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99032
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97175
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98427
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.01998
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96085
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.78207
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.90478
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.19229
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99068
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97133
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98772
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02252
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01936
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00976562
+  Relative error:     7.64245e-06
+  Speedup:            3.65477
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.45697e-12
+  Relative error:     6.72045e-15
+  Speedup:            1.88722
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.18973
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03377
+4-way SSE (concurrent): got 1 threads
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.125488
+  Relative error:     2.13911e-05
+  Speedup:            3.97052
+2-way SSE (concurrent): got 1 threads
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.44654e-10
+  Relative error:     4.65866e-14
+  Speedup:            1.98846
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.85223
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01595
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.91865
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.68797
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20772
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99141
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.3778
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            1.99465
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02863
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98085
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.98558
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.61484
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.28402
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98846
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.73326
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.36966
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03807
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01554
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.93814
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.70351
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20401
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98862
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.92608
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            1.91433
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.81897
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01213
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.98981
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.73532
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.21413
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98725
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.78119
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.21135
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02135
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.94425
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.62408
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.52075
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.14236
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99003
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            3.82562
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.43057
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.01708
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01252
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.69492
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.44942
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.16628
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03772
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            3.90293
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.42246
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.86549
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01559
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.9632
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.71094
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.22233
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99373
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.84953
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.26204
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02208
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96164
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.92966
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.55382
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            3.87651
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98956
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.76574
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            1.98189
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02082
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.9575
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.92736
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.62769
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20265
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99022
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            6.59168
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.48812
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.01987
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95408
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 65536
+  Absolute error:     0.0268555
+  Relative error:     1.05084e-05
+  Speedup:            6.89926
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 65536
+  Absolute error:     4.54747e-13
+  Relative error:     2.80019e-16
+  Speedup:            3.72257
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.25065
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.97477
+4-way SSE (concurrent): got 2 threads
+  Data type size:     4 byte
+  Number of elements: 2097152
+  Absolute error:     0.0341797
+  Relative error:     2.91326e-06
+  Speedup:            4.74847
+2-way SSE (concurrent): got 2 threads
+  Data type size:     8 byte
+  Number of elements: 2097152
+  Absolute error:     2.61934e-10
+  Relative error:     2.49386e-14
+  Speedup:            3.16588
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.00538
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.94222
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.556
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.1738
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.14425
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99367
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            7.79402
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.43892
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.04518
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01111
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            10.2762
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.02572
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.23677
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99064
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            7.57954
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.45425
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02857
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.94193
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.6396
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.84306
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.19835
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98992
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            11.9389
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.52489
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.91126
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0191
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.3308
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.0348
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.18835
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.0329
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            12.1082
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.54751
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.90787
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01354
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.2715
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.00198
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.1848
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99276
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            11.6813
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.3698
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.01569
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95756
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.3378
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            6.75127
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.1438
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99022
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            10.5879
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.27451
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.80102
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95443
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            14.2777
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            6.60912
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.24194
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98925
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            11.611
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.46788
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.0219
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.02169
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.1565
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            6.9769
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.16775
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99099
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            12.0403
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            3.9023
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.86736
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01177
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.5943
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.00887
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.1454
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98941
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            11.3133
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            5.50476
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.83352
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98507
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 131072
+  Absolute error:     0.0507812
+  Relative error:     1.04072e-05
+  Speedup:            12.543
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 131072
+  Absolute error:     2.13731e-11
+  Relative error:     7.65306e-15
+  Speedup:            7.23028
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.19999
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.9897
+4-way SSE (concurrent): got 4 threads
+  Data type size:     4 byte
+  Number of elements: 4194304
+  Absolute error:     0.28418
+  Relative error:     2.97919e-05
+  Speedup:            11.5149
+2-way SSE (concurrent): got 4 threads
+  Data type size:     8 byte
+  Number of elements: 4194304
+  Absolute error:     2.60343e-10
+  Relative error:     1.40476e-13
+  Speedup:            4.05268
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03098
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95638
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0700989
+  Relative error:     0.000159559
+  Speedup:            18.8982
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.3288
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.13901
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03309
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.306641
+  Relative error:     3.9978e-05
+  Speedup:            13.3893
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.27596e-10
+  Relative error:     1.12451e-13
+  Speedup:            7.78612
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.85328
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01836
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0699768
+  Relative error:     0.000159281
+  Speedup:            18.6676
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.3236
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.17586
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99054
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.306152
+  Relative error:     3.99143e-05
+  Speedup:            17.0406
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.27596e-10
+  Relative error:     1.12451e-13
+  Speedup:            7.88357
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03605
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01095
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0699463
+  Relative error:     0.000159211
+  Speedup:            19.2731
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.4938
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.16609
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98861
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.305664
+  Relative error:     3.98507e-05
+  Speedup:            17.1544
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.28505e-10
+  Relative error:     1.12592e-13
+  Speedup:            6.89309
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02836
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.04751
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0699463
+  Relative error:     0.000159211
+  Speedup:            19.2273
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.09228e-11
+  Relative error:     7.33033e-15
+  Speedup:            10.7153
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.21836
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98664
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.306152
+  Relative error:     3.99143e-05
+  Speedup:            16.4903
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.24867e-10
+  Relative error:     1.12029e-13
+  Speedup:            6.58494
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            5.8478
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.90698
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0699768
+  Relative error:     0.000159281
+  Speedup:            18.6497
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.0853
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.19725
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98714
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.306152
+  Relative error:     3.99143e-05
+  Speedup:            16.5083
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.29415e-10
+  Relative error:     1.12732e-13
+  Speedup:            7.37564
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.84214
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0216
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0699768
+  Relative error:     0.000159281
+  Speedup:            18.8732
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.6888
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20158
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99331
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.305664
+  Relative error:     3.98507e-05
+  Speedup:            17.2435
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.25777e-10
+  Relative error:     1.1217e-13
+  Speedup:            7.95887
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02758
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01387
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0700684
+  Relative error:     0.000159489
+  Speedup:            19.3951
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.8471
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.17564
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.9866
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.305664
+  Relative error:     3.98507e-05
+  Speedup:            16.7672
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.25777e-10
+  Relative error:     1.1217e-13
+  Speedup:            7.67171
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02682
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01041
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0699768
+  Relative error:     0.000159281
+  Speedup:            18.797
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.4587
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.1764
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98904
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.306152
+  Relative error:     3.99143e-05
+  Speedup:            13.9666
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.29415e-10
+  Relative error:     1.12732e-13
+  Speedup:            6.64248
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02751
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98897
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0701294
+  Relative error:     0.000159628
+  Speedup:            18.3625
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            9.75625
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.22651
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.90614
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.305664
+  Relative error:     3.98507e-05
+  Speedup:            16.902
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.29415e-10
+  Relative error:     1.12732e-13
+  Speedup:            7.95302
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.98011
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0215
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 262144
+  Absolute error:     0.0700073
+  Relative error:     0.00015935
+  Speedup:            16.2741
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 262144
+  Absolute error:     3.00133e-11
+  Relative error:     7.11473e-15
+  Speedup:            10.2037
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.15371
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03492
+4-way SSE (concurrent): got 8 threads
+  Data type size:     4 byte
+  Number of elements: 8388608
+  Absolute error:     0.306152
+  Relative error:     3.99143e-05
+  Speedup:            16.7738
+2-way SSE (concurrent): got 8 threads
+  Data type size:     8 byte
+  Number of elements: 8388608
+  Absolute error:     7.27596e-10
+  Relative error:     1.12451e-13
+  Speedup:            7.93019
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03345
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01035
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0477295
+  Relative error:     3.49778e-05
+  Speedup:            24.1575
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.04681e-11
+  Relative error:     7.58225e-15
+  Speedup:            12.9552
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.14609
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03679
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34375
+  Relative error:     0.000154611
+  Speedup:            16.6373
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            7.33356
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03177
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96303
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0479736
+  Relative error:     3.51567e-05
+  Speedup:            22.7167
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.09228e-11
+  Relative error:     7.69542e-15
+  Speedup:            13.9382
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.14336
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03701
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34375
+  Relative error:     0.000154611
+  Speedup:            14.5473
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            8.11124
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03553
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98334
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0479736
+  Relative error:     3.51567e-05
+  Speedup:            25.0533
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.04681e-11
+  Relative error:     7.58225e-15
+  Speedup:            14.0214
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.17603
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03666
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34766
+  Relative error:     0.000154724
+  Speedup:            16.6939
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.72848e-10
+  Relative error:     1.26264e-14
+  Speedup:            8.12118
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.05954
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96082
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0477295
+  Relative error:     3.49778e-05
+  Speedup:            26.5602
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.04681e-11
+  Relative error:     7.58225e-15
+  Speedup:            13.4547
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.17909
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98832
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34375
+  Relative error:     0.000154611
+  Speedup:            16.8984
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            7.98119
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.81137
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01967
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0478516
+  Relative error:     3.50672e-05
+  Speedup:            23.9949
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.04681e-11
+  Relative error:     7.58225e-15
+  Speedup:            14.2368
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.28767
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34375
+  Relative error:     0.000154611
+  Speedup:            14.713
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            8.05774
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.04057
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.9614
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0474854
+  Relative error:     3.47988e-05
+  Speedup:            25.8492
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.09228e-11
+  Relative error:     7.69542e-15
+  Speedup:            13.8115
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.2971
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99432
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34766
+  Relative error:     0.000154724
+  Speedup:            16.7082
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            8.15642
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.79538
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.00894
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0477295
+  Relative error:     3.49778e-05
+  Speedup:            23.4399
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.09228e-11
+  Relative error:     7.69542e-15
+  Speedup:            14.1507
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.15195
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03706
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34375
+  Relative error:     0.000154611
+  Speedup:            15.0938
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            8.1496
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02658
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01103
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0477295
+  Relative error:     3.49778e-05
+  Speedup:            25.2474
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.00133e-11
+  Relative error:     7.46909e-15
+  Speedup:            13.9357
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.19815
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98847
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34375
+  Relative error:     0.000154611
+  Speedup:            16.8814
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            7.32879
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03764
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0164
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0478516
+  Relative error:     3.50672e-05
+  Speedup:            22.675
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.09228e-11
+  Relative error:     7.69542e-15
+  Speedup:            12.625
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.08936
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98557
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34766
+  Relative error:     0.000154724
+  Speedup:            14.5459
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            8.15651
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03332
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95574
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 393216
+  Absolute error:     0.0478516
+  Relative error:     3.50672e-05
+  Speedup:            25.4389
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 393216
+  Absolute error:     3.04681e-11
+  Relative error:     7.58225e-15
+  Speedup:            13.8269
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.15396
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99691
+4-way SSE (concurrent): got 12 threads
+  Data type size:     4 byte
+  Number of elements: 12582912
+  Absolute error:     5.34766
+  Relative error:     0.000154724
+  Speedup:            16.7184
+2-way SSE (concurrent): got 12 threads
+  Data type size:     8 byte
+  Number of elements: 12582912
+  Absolute error:     2.80124e-10
+  Relative error:     1.29631e-14
+  Speedup:            7.33486
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.04987
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.97819
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0441895
+  Relative error:     1.49639e-05
+  Speedup:            24.2507
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            9.883
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.17087
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98914
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            23.3532
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.9456
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.51526
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01784
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0446777
+  Relative error:     1.51292e-05
+  Speedup:            26.8805
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.92813e-10
+  Relative error:     1.81373e-14
+  Speedup:            15.0666
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.21067
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98949
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            8.41061
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.3578
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.13275
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01594
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0441895
+  Relative error:     1.49639e-05
+  Speedup:            26.1739
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            15.9147
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.21559
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.992
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            21.3203
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.3792
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.59334
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.02468
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0441895
+  Relative error:     1.49639e-05
+  Speedup:            27.5166
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            15.3681
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.19516
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98545
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            20.3414
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.0757
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.06535
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01221
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0446777
+  Relative error:     1.51292e-05
+  Speedup:            25.3593
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            15.3655
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.08456
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.9037
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            23.0253
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.8833
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.77136
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01633
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0449219
+  Relative error:     1.52119e-05
+  Speedup:            26.958
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            14.8323
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.11294
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99138
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            23.0823
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.3054
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.11257
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01473
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0446777
+  Relative error:     1.51292e-05
+  Speedup:            24.1782
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            14.98
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            3.86396
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98842
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            23.4025
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            12.111
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.11313
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.21173
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0444336
+  Relative error:     1.50466e-05
+  Speedup:            25.4462
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            15.7105
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.08132
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99196
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            21.2673
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            11.228
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.0586
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01749
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0444336
+  Relative error:     1.50466e-05
+  Speedup:            25.4522
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.94632e-10
+  Relative error:     1.83084e-14
+  Speedup:            15.2925
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.165
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99014
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            20.5709
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52068e-09
+  Relative error:     1.68836e-13
+  Speedup:            11.6601
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.09431
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98469
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 524288
+  Absolute error:     0.0441895
+  Relative error:     1.49639e-05
+  Speedup:            27.1893
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 524288
+  Absolute error:     1.92813e-10
+  Relative error:     1.81373e-14
+  Speedup:            15.4666
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.09728
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98762
+4-way SSE (concurrent): got 16 threads
+  Data type size:     4 byte
+  Number of elements: 16777216
+  Absolute error:     3.76562
+  Relative error:     0.000103427
+  Speedup:            21.2872
+2-way SSE (concurrent): got 16 threads
+  Data type size:     8 byte
+  Number of elements: 16777216
+  Absolute error:     1.52249e-09
+  Relative error:     1.69038e-13
+  Speedup:            12.2028
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.03075
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.08133
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.0732422
+  Relative error:     3.18655e-05
+  Speedup:            26.8797
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.14596e-10
+  Relative error:     9.37233e-15
+  Speedup:            15.9535
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.2049
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.992
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.25977
+  Relative error:     0.000197645
+  Speedup:            25.0872
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            13.0338
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.05763
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.1942
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.0727539
+  Relative error:     3.1653e-05
+  Speedup:            26.3468
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.14596e-10
+  Relative error:     9.37233e-15
+  Speedup:            15.4382
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.14928
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98938
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.26172
+  Relative error:     0.000197763
+  Speedup:            27.311
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            12.9569
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.14093
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.90855
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.0732422
+  Relative error:     3.18655e-05
+  Speedup:            26.4646
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.14596e-10
+  Relative error:     9.37233e-15
+  Speedup:            14.7338
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20681
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99345
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.25977
+  Relative error:     0.000197645
+  Speedup:            26.6982
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            13.0369
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.1265
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96596
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.072998
+  Relative error:     3.17592e-05
+  Speedup:            16.6512
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.14596e-10
+  Relative error:     9.37233e-15
+  Speedup:            15.3003
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.17712
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98909
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.26172
+  Relative error:     0.000197763
+  Speedup:            28.6768
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.46655e-09
+  Relative error:     5.15375e-14
+  Speedup:            12.1245
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.14266
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96287
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.0727539
+  Relative error:     3.1653e-05
+  Speedup:            26.7738
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.16415e-10
+  Relative error:     9.5211e-15
+  Speedup:            16.3147
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.18125
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98995
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.25977
+  Relative error:     0.000197645
+  Speedup:            27.7544
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            12.9762
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.98629
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95717
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.072998
+  Relative error:     3.17592e-05
+  Speedup:            25.7207
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.12777e-10
+  Relative error:     9.22357e-15
+  Speedup:            15.3528
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.18569
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99015
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.26367
+  Relative error:     0.000197881
+  Speedup:            27.5854
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            12.6921
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.10845
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.98282
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.072998
+  Relative error:     3.17592e-05
+  Speedup:            25.4932
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.14596e-10
+  Relative error:     9.37233e-15
+  Speedup:            11.4155
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.18663
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99286
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.26172
+  Relative error:     0.000197763
+  Speedup:            28.2051
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            8.57761
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.74525
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01162
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.072998
+  Relative error:     3.17592e-05
+  Speedup:            24.82
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.16415e-10
+  Relative error:     9.5211e-15
+  Speedup:            14.934
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.08708
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98974
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.25977
+  Relative error:     0.000197645
+  Speedup:            28.3169
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            12.8909
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.1454
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.0134
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.0732422
+  Relative error:     3.18655e-05
+  Speedup:            25.7809
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.14596e-10
+  Relative error:     9.37233e-15
+  Speedup:            15.5399
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20899
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99123
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.25977
+  Relative error:     0.000197645
+  Speedup:            27.6505
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.46655e-09
+  Relative error:     5.15375e-14
+  Speedup:            12.972
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.63781
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95537
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 655360
+  Absolute error:     0.0727539
+  Relative error:     3.1653e-05
+  Speedup:            24.9406
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 655360
+  Absolute error:     1.16415e-10
+  Relative error:     9.5211e-15
+  Speedup:            14.2775
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20291
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.9975
+4-way SSE (concurrent): got 20 threads
+  Data type size:     4 byte
+  Number of elements: 20971520
+  Absolute error:     3.26172
+  Relative error:     0.000197763
+  Speedup:            29.5291
+2-way SSE (concurrent): got 20 threads
+  Data type size:     8 byte
+  Number of elements: 20971520
+  Absolute error:     2.45927e-09
+  Relative error:     5.13855e-14
+  Speedup:            13.2942
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.16206
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.06354
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            27.1207
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.1888
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.05477
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.98914
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.09961
+  Relative error:     7.74389e-05
+  Speedup:            31.5494
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.88354e-10
+  Relative error:     5.97291e-14
+  Speedup:            12.9583
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.70897
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01239
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            24.4621
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.2164
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.20846
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99286
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.09961
+  Relative error:     7.74389e-05
+  Speedup:            33.6109
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.87445e-10
+  Relative error:     5.95892e-14
+  Speedup:            12.6762
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.14372
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.95662
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.2889
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.5589
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.10637
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99094
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.10156
+  Relative error:     7.75109e-05
+  Speedup:            32.0978
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.90173e-10
+  Relative error:     6.00088e-14
+  Speedup:            12.7999
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.0832
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96983
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.0469
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.1577
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.09347
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.03731
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.09766
+  Relative error:     7.73668e-05
+  Speedup:            30.7759
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.91083e-10
+  Relative error:     6.01487e-14
+  Speedup:            11.0645
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.02721
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01452
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.4361
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.7152
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.07717
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99289
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.10547
+  Relative error:     7.7655e-05
+  Speedup:            31.3043
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.89264e-10
+  Relative error:     5.98689e-14
+  Speedup:            13.0736
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.99983
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.19502
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.3675
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            16.2105
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.16766
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99207
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.10156
+  Relative error:     7.75109e-05
+  Speedup:            31.7233
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.91083e-10
+  Relative error:     6.01487e-14
+  Speedup:            12.4549
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.16752
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.96045
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.8736
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.6568
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.08783
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99298
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.10352
+  Relative error:     7.7583e-05
+  Speedup:            32.1049
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.90173e-10
+  Relative error:     6.00088e-14
+  Speedup:            13.0304
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            3.85534
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01314
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.8996
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.9389
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.10427
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99331
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.09961
+  Relative error:     7.74389e-05
+  Speedup:            31.2008
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.89264e-10
+  Relative error:     5.98689e-14
+  Speedup:            12.9343
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.17954
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            2.01283
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.0810547
+  Relative error:     1.85718e-05
+  Speedup:            26.7951
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.9282
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.07614
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            1.99086
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.10156
+  Relative error:     7.75109e-05
+  Speedup:            32.6086
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.90173e-10
+  Relative error:     6.00088e-14
+  Speedup:            12.7349
+###############################################################################
+###############################################################################
+TESTING SIZE N = 32768
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 32768
+  Absolute error:     0.00891113
+  Relative error:     7.67111e-06
+  Speedup:            4.15982
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 32768
+  Absolute error:     5.00222e-12
+  Relative error:     6.77646e-15
+  Speedup:            1.94926
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 786432
+  Absolute error:     0.081543
+  Relative error:     1.86837e-05
+  Speedup:            26.5273
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 786432
+  Absolute error:     2.18279e-11
+  Relative error:     2.08717e-15
+  Speedup:            15.9293
+###############################################################################
+###############################################################################
+TESTING SIZE N = 1048576
+4-way SSE (serial):
+  Data type size:     4 byte
+  Number of elements: 1048576
+  Absolute error:     0.114258
+  Relative error:     2.14244e-05
+  Speedup:            4.10016
+2-way SSE (serial):
+  Data type size:     8 byte
+  Number of elements: 1048576
+  Absolute error:     2.22826e-10
+  Relative error:     4.66732e-14
+  Speedup:            2.0334
+4-way SSE (concurrent): got 24 threads
+  Data type size:     4 byte
+  Number of elements: 25165824
+  Absolute error:     2.10352
+  Relative error:     7.7583e-05
+  Speedup:            32.5939
+2-way SSE (concurrent): got 24 threads
+  Data type size:     8 byte
+  Number of elements: 25165824
+  Absolute error:     3.88354e-10
+  Relative error:     5.97291e-14
+  Speedup:            13.0006
+###############################################################################
+Autoloading openblas/0.2.13_seq

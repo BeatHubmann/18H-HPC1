@@ -88,63 +88,70 @@ make any sense, as obviously even for $p \rightarrow \infty$ the absolute best o
 
 \section{Question 2: Manual Vectorization of Reduction Operator}
 
-Blub
 
 \subsection{Task a)}
-
+Done as instructed.
 
 \subsection{Task b)}
+Done as instructed.
 
 \subsection{Task c)}
+Done as instructed.
 
 \subsubsection{Task c.i)}
-Blub
+In accordance with the SIMD width, a speed up of 4 and 2 respectively was expected for serial execution.
+With thread level parallelism, the maximum additional speedup factor should be in the order of the number of threads employed.
 
 \subsubsection{Task c.ii)}
-Blub
+The differences between lasrge and small vector size seem somewhat inconclusive. However it is evident that the overhead
+in the OpenMP implementation as expected didn't result perfect speedup.
 
 
-% \begin{figure}[ht]
-% \begin{center}
-% \includegraphics[scale=0.5]{results.png} 
-% \end{center}
-% \caption{Parallel Monte Carlo integration on Euler compute cluster.}
-% \label{fig1}
-% \end{figure}
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=0.5]{2-way.pdf} 
+\end{center}
+\caption{Thread level parallelism speedup of reduction operator: Double precision data.}
+\label{fig1}
+\end{figure}
+
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=0.5]{4-way.pdf} 
+\end{center}
+\caption{Thread level parallelism speedup of reduction operator: Single precision data.}
+\label{fig2}
+\end{figure}
+    
+
+
 
 \section{Question 3}
 
-Blub
 
 \subsection{Task a)}
 
 
+Done as instructed.
+
 \subsection{Task b)}
 
+Done as instructed.
 \subsection{Task c)}
 
+Attempted as instructed, however ran out of time when trying to properly implement
+\texttt{ISPC} matrix multiplication.
+
 \subsection{Task d)}
+See c) above; implementation not fully functional.
 
 \subsection{Task e)}
+See c) above; implementation not fully functional.
 
 \subsection{Task f)}
+See c) above; implementation not fully functional.
 
-\begin{lstlisting}[float, caption={Proposed modification for correctness in task 2.}, label={lst1}]
-    #pragma omp parallel for
-    for (int i= 0; i < N; i++)
-    {
-        if (is_good(i)) // No change until here
-        {
-            int thread_pos{0}; // Define thread specific position variable
-            #pragma omp critical // This block replaces the #pragma omp atomic section
-            {
-                thread_pos= pos; // Protected read
-                pos++; // Protected write
-            }
-            good_members[thread_pos]= i; // Use thread specific variable
-        }
-    }
-\end{lstlisting}
 
 
 %\begin{thebibliography}{99}

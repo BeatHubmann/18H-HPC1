@@ -10,4 +10,5 @@ for comp in list(p.glob('component_*.raw')):
     D.resize([28, 28])
     plt.title("%s" % comp)
     plt.imshow(D)
+    plt.savefig(comp.name[:-4] +'.eps', format='eps', dpi=300)
     plt.show()

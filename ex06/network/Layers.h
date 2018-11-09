@@ -97,9 +97,18 @@ struct LinearLayer: public Layer
     //return matrix that contains layer's output
     Real*const output = act[ID]->output; //size is batchSize * nOutputs
 
-    // TODO : reset layer's output with the bias
-
-    // TODO : perform the forward step with gemm
+    // DONE: TODO : reset layer's output with the bias
+    #pragma omp parallel for schedule(static) 
+    for (int b= 0; b < batchSize; b++)
+    {
+      memcpy(&output[b * nOutputs], bias, nOutputs * sizeof(Real)); // should be quicker than commented loop below
+      // for (int o= 0; o < nOutputs; o++)
+      // {
+      //   output[b * nOutputs + o]= bias[o]; 
+      // }
+    }
+    // DONE: TODO : perform the forward step with gemm
+    gemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, batchSize, nOutputs, nInputs, 1.0, inputs, nInputs, weight, nOutputs, 1.0, output, nOutputs);  
   }
 
 
@@ -114,19 +123,29 @@ struct LinearLayer: public Layer
     const Real* const weight = param[ID]->weights; // nInputs * nOutputs
     const int batchSize = act[ID]->batchSize;
 
-    // TODO: Implement BackProp to compute bias gradient: dError / dBias
+    // DONE: TODO: Implement BackProp to compute bias gradient: dError / dBias
     {
       Real* const grad_B = grad[ID]->biases; // size nOutputs
+      for (int b= 0; b < batchSize; b++)
+      {
+        #pragma omp parallel for schedule(static) 
+        for (int o= 0; o < nOutputs; o++)
+        {
+          grad_B[o] += deltas[b * nOutputs + o];
+        }
+      }
     }
 
-    // TODO: Implement BackProp to compute weight gradient: dError / dWeights
+    // DONE: TODO: Implement BackProp to compute weight gradient: dError / dWeights
     {
       Real* const grad_W = grad[ID]->weights; // size nInputs * nOutputs
+      gemm(CblasRowMajor, CblasTrans, CblasNoTrans, nInputs, nOutputs, batchSize, 1.0, inputs, nInputs, deltas, nOutputs, 0.0, grad_W, nOutputs);
     }
 
-    // TODO: Implement BackProp to compute dEdO of prev layer
+    // DONE: TODO: Implement BackProp to compute dEdO of prev layer
     {
       Real* const errinp = act[ID-1]->dError_dOutput; // batchSize * nInputs
+      gemm(CblasRowMajor, CblasNoTrans, CblasTrans, batchSize, nInputs, nOutputs, 1.0, deltas, nOutputs, weight, nOutputs, 0.0, errinp, nInputs);
     }
   }
 
@@ -167,7 +186,12 @@ struct TanhLayer: public Layer
     //return matrix that contains layer's output
     Real*const output = act[ID]->output; //size is batchSize * size
 
-    // TODO : Compute output
+    // DONE: TODO : Compute output
+    #pragma omp parallel for schedule(static) 
+    for (int i= 0; i < batchSize * size; i++)
+    {
+      output[i]= std::tanh(inputs[i]);
+    }
   }
 
   void bckward(const std::vector<Activation*>& act,
@@ -185,7 +209,12 @@ struct TanhLayer: public Layer
     //return matrix that contains dError / dOutput for previous layer:
     Real* const errinp = act[ID-1]->dError_dOutput; //size is batchSize * size
 
-    // TODO : compute dError / dOutput for previous layer
+    // DONE: TODO : compute dError / dOutput for previous layer
+    #pragma omp parallel for schedule(static) 
+    for (int e= 0; e < batchSize * size; e++)
+    {
+      errinp[e]= (1 - std::pow(std::tanh(inputs[e]), 2)) * deltas[e];
+    }
   }
 
   // no parameters to initialize;

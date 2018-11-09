@@ -33,7 +33,14 @@ struct MomentumSGD
         Real* const mom2nd  // parameter array gradient 2nd moment (unused)
       ) const
   {
-    // TODO : Compute Momentum SGD update
+    // DONE: TODO : Compute Momentum SGD update
+    #pragma omp parallel for schedule(static) 
+    for (int p= 0; p < size; p++)
+    {
+      mom1st[p]= beta * mom1st[p] - eta * normalization * grad[p]; // 1st moment update
+      param[p] += mom1st[p]; // param (e.g. weights, biases) update
+      param[p] -= eta * lambda * param[p]; // L2 penalization
+    }
   }
 };
 
@@ -80,6 +87,7 @@ struct Optimizer
     const Algorithm algo(eta, batchSize, beta_1, beta_2, lambda);
 
     // ... loop over all parameter arrays and compute the update:
+    #pragma omp parallel for schedule(static) 
     for (size_t j = 0; j < parms.size(); j++)
     {
       if (parms[j] == nullptr) continue; //layer does not have parameters

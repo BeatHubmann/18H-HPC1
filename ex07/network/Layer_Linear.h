@@ -31,11 +31,18 @@ struct LinearLayer: public Layer
     const Real*const bias   = param[ID]->biases; //size is nOutputs
     Real*const output = act[ID]->output; //size is batchSize * nOutputs
 
-    // TODO : reset layer's workspace and add the bias
-    abort();
+    // TO CHECK: TODO : reset layer's workspace and add the bias
+#pragma omp parallel for schedule(static)
+    for(int b=0; b<batchSize; b++)
+      for(int n=0; n<nOutputs; n++) output[n + b*nOutputs] = bias[n];
 
-    // TODO : perform the forward step with gemm
-    abort();
+
+    // TO CHECK: TODO : perform the forward step with gemm
+    gemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+        batchSize, nOutputs, nInputs,
+        (Real)1.0, inputs, nInputs,
+                   weight, nOutputs,
+        (Real)1.0, output, nOutputs);
   }
 
 
@@ -50,24 +57,35 @@ struct LinearLayer: public Layer
     const Real* const weight = param[ID]->weights;
     const int batchSize = act[ID]->batchSize;
 
-    // TODO:  Implement BackProp to compute bias gradient:
+    // TO CHECK: TODO:  Implement BackProp to compute bias gradient:
     {
       // This array will contain dError / dBias, has size nOutputs
       Real* const grad_B = grad[ID]->biases;
-      abort();
-    }
+      std::fill(grad_B, grad_B + nOutputs, 0);
+#pragma omp parallel for schedule(static, 64/sizeof(Real))
+      for(int n=0; n<nOutputs; n++)
+        for(int b=0; b<batchSize; b++)
+          grad_B[n] += deltas[n + b*nOutputs];    }
 
-    // TODO: Implement BackProp to compute weight gradient
+    // TO CHECK: TODO: Implement BackProp to compute weight gradient
     {
       // This array will contain dError / dBias, has size nInputs * nOutputs
       Real* const grad_W = grad[ID]->weights;
-      abort();
+      gemm(CblasRowMajor, CblasTrans, CblasNoTrans,
+          nInputs, nOutputs, batchSize,
+          (Real)1.0, inputs, nInputs,
+                     deltas, nOutputs,
+          (Real)0.0, grad_W, nOutputs);
     }
 
-    // TODO: Implement BackProp to compute dEdO of previous layer
+    // TO CHECK: TODO: Implement BackProp to compute dEdO of previous layer
     {
       Real* const errinp = act[ID-1]->dError_dOutput;
-      abort();
+      gemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+          batchSize, nInputs, nOutputs,
+          (Real)1.0, deltas, nOutputs,
+                     weight, nOutputs,
+          (Real)0.0, errinp, nInputs);
     }
   }
 

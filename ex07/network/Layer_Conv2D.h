@@ -50,10 +50,21 @@ struct Conv2DLayer: public Layer
     const Real* const INP = act[ID-1]->output;
           Real* const OUT = act[ID]->output;
 
-    printf("TODO: Conv2DLayer::forward\n");
-    abort();
-  }
+    // printf("TO CHECK: Conv2DLayer::forward\n");
+    const Real* const weight= param[ID]->weights;
+    const Real* const   bias= param[ID]->biases;
 
+#pragma omp parallel for schedule(static)
+    for (int b= 0; b < batchSize * OpY * OpX; b++)
+      for (int n= 0; n < KnC; n++)
+        OUT[b * KnC + n]= bias[n];
+
+    gemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+         batchSize * OpY * OpX, KnC, KnY * KnX * InC,
+         (Real)1.0, INP, KnY * KnX * InC,
+         weight, KnC,
+         (Real)1.0, OUT, KnC);
+  }
   void bckward(const std::vector<Activation*>& act,
                const std::vector<Params*>& param,
                const std::vector<Params*>& grad) const override
@@ -61,8 +72,40 @@ struct Conv2DLayer: public Layer
     const int batchSize = act[ID]->batchSize;
     const Real* const dEdO = act[ID]->dError_dOutput;
 
-    printf("TODO: Conv2DLayer::bckward\n");
-    abort();
+    // printf("TO CHECK: Conv2DLayer::bckward\n");
+    const Real* const INP = act[ID-1]->output; //  
+    const Real* const weight = param[ID]->weights; //
+
+
+    // TO CHECK: Implement BackProp to compute bias gradient: dError / dBias
+    {
+      Real* const grad_B = grad[ID]->biases; // size KnC
+      std::fill(grad_B, grad_B + KnC, 0);
+#pragma omp parallel for schedule(static, 64/sizeof(Real))
+      for (int n= 0; n < KnC; n++)
+        for (int b= 0; b < batchSize * OpY * OpX; b++)
+          grad_B[n] += dEdO[b * KnC + n];
+    }
+
+    // TO CHECK: Implement BackProp to compute weight gradient: dError / dWeights
+    {
+      Real* const grad_W = grad[ID]->weights; // KnY*KnX*InC * KnC 
+      gemm(CblasRowMajor, CblasTrans, CblasNoTrans,
+          KnY * KnX * InC, KnC, batchSize * OpY * OpX,
+          (Real)1.0, INP, KnY * KnX * InC,
+                     dEdO, KnC,
+          (Real)0.0, grad_W, KnC);
+    }
+
+    // TO CHECK: Implement BackProp to compute dEdO of previous layer
+    {
+      Real* const errinp = act[ID-1]->dError_dOutput;  
+      gemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+          batchSize * OpY * OpX, KnY * KnX * InC, KnC, 
+          (Real)1.0, dEdO, KnC,
+                     weight, KnC,
+          (Real)0.0, errinp, KnY * KnX * InC);
+    }
   }
 
   void init(std::mt19937& gen, const std::vector<Params*>& param) const override

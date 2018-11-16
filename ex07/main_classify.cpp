@@ -39,7 +39,7 @@ int main (int argc, char** argv)
   const int n_test_samp = dataset.test_images.size();
 
   // Training parameters:
-  const int nepoch = 50, batchsize = 512;
+  const int nepoch = 50, batchsize = 128; // original: batchsize = 512
   const Real learn_rate = 1e-4;
 
   // Create Network:
@@ -47,6 +47,38 @@ int main (int argc, char** argv)
   // layer 0: input
   net.addInput<28*28*1>();
 
+  //            (input img)  (conv filter)  (stride)
+  //             nx, ny, nc  nfx, nfy, nfc         (padding)
+  net.addConv2D< 28, 28,  1,   6,   6,   8,   2,2,    0,0>();
+  // output of first conv has sizes (28 - 6 + 2*0)/2 + 1 = 12
+  net.addLReLu<  12 * 12 * 8 >();
+
+  net.addConv2D< 12, 12,  8,   5,   5,   16,  1,1,    0,0>();
+  // output of second conv has sizes (12 - 5 + 2*0)/1 + 1 = 8
+  net.addLReLu<  8 *  8 * 16 >();
+
+  net.addConv2D<  8,  8, 16,   4,   4,   32,  1,1,    0,0>();
+  // output of third conv has sizes (8 - 4 + 2*0)/1 + 1 = 5
+  net.addLReLu<  5 * 5 * 32 >();
+
+  net.addConv2D<  5,  5, 32,   3,   3,   64,   2,2,    0,0>();
+  // output of fourth conv has sizes (5 - 3  + 2*0)/2 + 1 = 2
+  net.addLReLu<   2 * 2 * 64 >();
+
+  net.addConv2D<  2,  2,  64,  2,   2, 128,   1,1,    0,0>();
+  // output of fifth conv has sizes (2 - 2 + 2*0)/1 + 1 = 1
+
+  net.addLReLu< 1 * 1 * 128 >();
+
+  net.addLinear<128, 128>();
+
+  net.addLReLu<128>();
+
+  net.addLinear<128, 10>();
+
+  net.addSoftMax<10>();
+
+/* Original layers ===========================================
   //            (input img)  (conv filter)  (stride)
   //             nx, ny, nc  nfx, nfy, nfc         (padding)
   net.addConv2D< 28, 28,  1,   8,   8,   4,   2,2,    0,0>();
@@ -67,6 +99,7 @@ int main (int argc, char** argv)
   // Same as fully connected with 10 outputs: one output per number
   // Softmax maps unbounded input to "probability"-like output
   net.addSoftMax<10>();
+// Original layers ==========================================*/
 
   //Create optimizer:
   Optimizer<Adam> opt(net, learn_rate);
@@ -90,7 +123,7 @@ int main (int argc, char** argv)
       // Put `batchsize` samples in the inputs vector-of-vectors. Start from
       // the end because it's easier to remove entries from a vectors's end.
       std::vector<std::vector<Real>> INP(batchsize, std::vector<Real>(28*28));
-
+#pragma omp parallel for schedule(static)
       for (int i = 0; i < batchsize; i++)
       {
         const int sample = sample_ids[sample_ids.size() - 1 - i];
@@ -99,6 +132,7 @@ int main (int argc, char** argv)
 
       std::vector<std::vector<Real>> OUT = net.forward(INP);
 
+#pragma omp parallel for schedule(static) reduction(+:epoch_mse) reduction(+:epoch_prec)
       for (int i = 0; i < batchsize; i++)
       {
         // For simplicity here we overwrite OUT with the gradient of the error
@@ -136,6 +170,7 @@ int main (int argc, char** argv)
       for (int step = 0; step < steps_in_test; step++)
       {
 
+#pragma omp parallel for schedule(static)
         for (int i = 0; i < batchsize; i++)
         {
           const int sample = i + batchsize * step;
@@ -144,6 +179,7 @@ int main (int argc, char** argv)
 
         std::vector<std::vector<Real>> OUT = net.forward(INP);
 
+#pragma omp parallel for schedule(static) reduction(+:test_mse) reduction(+:test_prec)
         for (int i = 0; i < batchsize; i++) {
           const int sample = i + batchsize * step;
           const uint8_t label = dataset.test_labels[sample];

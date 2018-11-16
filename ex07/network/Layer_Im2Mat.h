@@ -78,6 +78,7 @@ struct Im2MatLayer: public Layer
 
     // clean up memory space of lin_out. Why? Because padding, that's why.
 #if 1
+#pragma omp parallel for collapse(6) schedule(static)
     for (int bc=0; bc<BS; bc++)
       for (int oy = 0; oy < OpY; oy++)
       for (int ox = 0; ox < OpX; ox++)
@@ -89,9 +90,27 @@ struct Im2MatLayer: public Layer
     memset(lin_out, 0, BS * OpY * OpX * KnY * KnX * InC * sizeof(Real) );
 #endif
 
-    printf("TODO: Im2MatLayer::Im2Mat\n");
-    abort();
+    // printf("TO CHECK: Im2MatLayer::Im2Mat\n");
+#pragma omp parallel for collapse(5) schedule(static)
+    for (int bc= 0; bc < BS; bc++) // Loop over minibatch items ]
+      for (int oy= 0; oy < OpY; oy++) // Loop over output Y     ] OUT rows
+      for (int ox= 0; ox < OpX; ox++) // Loop over output X     ]
+      {
+        for (int fy= 0; fy < KnY; fy++) // Loop over filter Y           }
+        for (int fx= 0; fx < KnX; fx++) // Loop over filter X           } OUT cols
+        {
+          const int iy{oy * Sy - Py + fy}; // Translate filter y idx to image y idx
+          const int ix{ox * Sx - Px + fx}; // Translate filter x idx to image x idx
+          if (0 <= iy && iy < InY && 0 <= ix && ix < InY) // Act only where no padding
+          {
+            for (int ic= 0; ic < InC; ic++) // Loop over input channels }
+              OUT[bc][oy][ox][fy][fx][ic]= INP[bc][iy][ix][ic];
+          }
+          
+        }
+      } 
   }
+  
 
   void Mat2Im(const int BS, const Real*const lin_inp, Real*const lin_out) const
   {
@@ -104,6 +123,7 @@ struct Im2MatLayer: public Layer
 
     // Mat2Im accesses memory with plus equal: reset field
 #if 1
+#pragma omp parallel for collapse(4) schedule(static)
     for (int bc=0; bc<BS; bc++)
       for (int iy = 0; iy < InY; iy++)
       for (int ix = 0; ix < InX; ix++)
@@ -113,8 +133,27 @@ struct Im2MatLayer: public Layer
     memset(lin_out, 0, BS * InY * InX * InC * sizeof(Real) );
 #endif
 
-    printf("TODO: Im2MatLayer::Mat2Im\n");
-    abort();
+    // printf("TO CHECK: Im2MatLayer::Mat2Im\n");
+#pragma omp parallel for collapse(5) schedule(static)
+    for (int bc= 0; bc < BS; bc++) // Loop over minibatch items ]
+      for (int oy= 0; oy < OpY; oy++) // Loop over output Y     ] OUT rows
+      for (int ox= 0; ox < OpX; ox++) // Loop over output X     ]
+      {
+        for (int fy= 0; fy < KnY; fy++) // Loop over filter Y           }
+        for (int fx= 0; fx < KnX; fx++) // Loop over filter X           } OUT cols
+        {
+          const int iy{oy * Sy - Py + fy}; // Translate filter y idx to image y idx
+          const int ix{ox * Sx - Px + fx}; // Translate filter x idx to image x idx
+          if (0 <= iy && iy < InY && 0 <= ix && ix < InY) // Act only where no padding
+          {
+            for (int ic= 0; ic < InC; ic++) // Loop over input channels }
+              dLdINP[bc][iy][ix][ic] += dLdOUT[bc][oy][ox][fy][fx][ic];
+          }
+          
+        }
+      } 
+    
+    
   }
 
   void init(std::mt19937& G, const std::vector<Params*>& P) const override {  }

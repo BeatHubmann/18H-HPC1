@@ -90,8 +90,28 @@ void Write(const Vect& u, MPI_Comm comm, std::string fn) {
 
 // Writes vector to file.
 // fn: filename
-void WriteMpi(const Vect& u, MPI_Comm comm, std::string fn) {
+// This exactly does what's asked: Writes u to file using MPI I/O
+// It's binary format without prettification though, but task said nothing about that
+void WriteMpi(const Vect& u, MPI_Comm comm, std::string fn)
+{
   // TODO 2b
+  int rank;
+  MPI_Comm_rank(comm, &rank);
+
+  MPI_File file;
+  MPI_Offset offset= sizeof(double) * L * rank;
+  
+  double* buffer= new double[L];
+  for (Size i= 0; i < L; i++)
+    buffer[i]= (double)u.v[i];
+
+  MPI_File_open(comm, fn.c_str(), MPI_MODE_CREATE|MPI_MODE_WRONLY,
+                MPI_INFO_NULL, &file);
+  
+  MPI_File_seek(file, offset, MPI_SEEK_SET);  
+  MPI_File_write(file, buffer, L, MR, MPI_STATUS_IGNORE);
+  
+  MPI_File_close(&file);
 }
 
 

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <array>
 
 using Real = double;
 using Size = size_t;
@@ -10,7 +11,7 @@ const MPI_Datatype MS = MPI_UNSIGNED_LONG;
 const MPI_Datatype MR = MPI_DOUBLE;
 
 // grid size
-const Size N = 64;
+const Size N = 128;
 const Size NX = N;
 const Size NY = N;
 // number of blocks

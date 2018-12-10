@@ -1,0 +1,7 @@
+set terminal postscript eps color enhanced; 
+set encoding utf8;
+set grid;
+set xlabel 'Compression Tolerance';
+set ylabel 'Compression Rate'; 
+set output 'compare.eps'
+plot 'compare.dat' i 0 u 1:2 w linespoints pt 9 notitle; 

@@ -14,10 +14,10 @@ debug ?= false
 # disable GZIP output of lossy data
 gzipout ?= true
 
-.PHONY: clean cleandata install_zfp
+.PHONY: clean cleandata install_zfp cleanall compare
 
 ifeq ("$(debug)", "false")
-CXXFLAGS += -O2 -DNDEBUG
+CXXFLAGS += -O3 -DNDEBUG
 else
 CXXFLAGS += -O0 -g
 endif
@@ -43,4 +43,10 @@ clean:
 	rm -f mpi_float_compression
 
 cleandata:
-	rm -f *_t*.zfp *_t*.bin.gz *_t*.png
+	rm -f *_t*.zfp *_t*.bin.gz *_t*.png *.dat
+
+cleanall: clean cleandata
+
+compare: mpi_float_compression compare.gplt
+	./run_batch.sh > compare.dat
+	gnuplot compare.gplt

@@ -6,7 +6,7 @@
 # Copyright 2018 ETH Zurich. All Rights Reserved.
 set -Eeuo pipefail
 
-source ./environ.sh
+ # source ./environ.sh
 
 tolerance="${1}"; shift
 dim=4096
@@ -20,7 +20,7 @@ make mpi_float_compression
 mpirun -n 4 ./mpi_float_compression "${tol}" ${dim} cyclone.bin.gz
 
 # post-process
-python print_png.py \
+python3 print_png.py \
     --ref 'cyclone.bin.gz' \
     --test "cyclone_t${tol}.bin.gz" \
     --output "cyclone_t${tol}.png" \

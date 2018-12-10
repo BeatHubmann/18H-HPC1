@@ -31,6 +31,7 @@ struct BlockHeader
     size_t start, compressed_bytes, bufsize;
 };
 
+
 /**
  * @brief Function used to write our compressed MPI file format.
  *
@@ -81,14 +82,55 @@ void write_data(const string& fname,
     // 4.) fill block header
 
     // 1.)
+    
     FileHeader fheader;
 
+    fheader.tol= tol;
+    fheader.Nx= Nx;
+    fheader.Ny= Ny;
+    fheader.Nb= size;
+
     // 2.)
+    // Set up custom MPI types for file header, block header structs: Easier R/W handling
+    MPI_Datatype mpi_fheader, mpi_bheader;
+    MPI_Datatype fh_types[2], bh_types[1];
+    MPI_Aint fh_offsets[2], bh_offsets[1];
+    int fh_blockcounts[2], bh_blockcounts[1];
+    // File header -> MPI_Type mpi_fheader:
+    fh_types[0]= MPI_DOUBLE; // use MPI_DOUBLE for double
+    fh_offsets[0]= 0;
+    fh_blockcounts[0]= 1;
+    MPI_Aint lb, extent;
+    MPI_Type_get_extent(MPI_DOUBLE, &lb, &extent);
+    fh_types[1]= MPI_UNSIGNED_LONG; // use MPI_UNSIGNED_LONG for size_t
+    fh_offsets[1]= fh_blockcounts[0] * extent;
+    fh_blockcounts[1]= 3;
+    MPI_Type_create_struct(2, fh_blockcounts, fh_offsets, fh_types, &mpi_fheader);
+    MPI_Type_commit(&mpi_fheader);
+    // Block header -> MPI_Type mpi_bheader
+    bh_types[0]= MPI_UNSIGNED_LONG; // use MPI_UNSIGNED_LONG for size_t
+    bh_offsets[0]= 0;
+    bh_blockcounts[0]= 3;
+    MPI_Type_create_struct(1, bh_blockcounts, bh_offsets, bh_types, &mpi_bheader);
+    MPI_Type_commit(&mpi_bheader);
+    // Calculate offset for process' own block header
+    MPI_Aint fh_size, bh_size;
+    MPI_Type_get_extent(mpi_fheader, &lb, &fh_size); // = 32 byte
+    MPI_Type_get_extent(mpi_bheader, &lb, &bh_size); // = 24 byte
+    MPI_Offset bh_offset= fh_size + rank * bh_size;
 
     // 3.)
+    MPI_Offset cbuf_offset; // Calculate compressed block offsets relative to e/a other
+    MPI_Exscan(&cbytes, &cbuf_offset, 1, MPI_OFFSET, MPI_SUM, MPI_COMM_WORLD);
+    if (isroot)
+        cbuf_offset= 0; // MPI_Exscan leaves recvbuf undefined on process 0
+    cbuf_offset+= fh_size + size * bh_size; // compressed blocks start after all headers
 
     // 4.)
     BlockHeader bheader;
+    bheader.start= cbuf_offset;
+    bheader.compressed_bytes= cbytes;
+    bheader.bufsize= bufsize;
 
     // TODO: file write operations
     // 1.) open MPI file for write operations
@@ -100,11 +142,24 @@ void write_data(const string& fname,
     MPI_File fh;
     MPI_Status st;
 
+    // Open file write only, create if not existing
+    MPI_File_open(MPI_COMM_WORLD, fname.c_str(), MPI_MODE_CREATE|MPI_MODE_WRONLY,
+    MPI_INFO_NULL, &fh);
+
     // 2.)
+    if (isroot) // Root (rank 0) writes single file header
+        MPI_File_write_at(fh, 0, &fheader, 1, mpi_fheader, &st);
+
+    // All processes write their block headers:
+    MPI_File_write_at_all(fh, bh_offset, &bheader, 1, mpi_bheader, &st);
 
     // 3.)
+    // All processes write their compressed data:
+    MPI_File_write_at_all(fh, cbuf_offset, cbuf, cbytes, MPI_UNSIGNED_CHAR, &st);
 
     // 4.)
+    // Close file:
+    MPI_File_close(&fh);
 }
 
 /**
@@ -138,15 +193,65 @@ unsigned char* read_data(const string& fname,
     MPI_File fh;
     MPI_Status st;
 
+    // Open file read only
+    MPI_File_open(MPI_COMM_WORLD, fname.c_str(), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+
     // 2.)
+    // Variables to set up custom MPI types for file header, block header structs
+    MPI_Datatype mpi_fheader, mpi_bheader;
+    MPI_Datatype fh_types[2], bh_types[1];
+    MPI_Aint fh_offsets[2], bh_offsets[1];
+    int fh_blockcounts[2], bh_blockcounts[1];
+    // File header: mpi_fheader:
+    fh_types[0]= MPI_DOUBLE;
+    fh_offsets[0]= 0;
+    fh_blockcounts[0]= 1;
+    MPI_Aint lb, extent;
+    MPI_Type_get_extent(MPI_DOUBLE, &lb, &extent);
+    fh_types[1]= MPI_UNSIGNED_LONG;
+    fh_offsets[1]= fh_blockcounts[0] * extent;
+    fh_blockcounts[1]= 3;
+    MPI_Type_create_struct(2, fh_blockcounts, fh_offsets, fh_types, &mpi_fheader);
+    MPI_Type_commit(&mpi_fheader);
+    // Block header: mpi_bheader
+    bh_types[0]= MPI_UNSIGNED_LONG;
+    bh_offsets[0]= 0;
+    bh_blockcounts[0]= 3;
+    MPI_Type_create_struct(1, bh_blockcounts, bh_offsets, bh_types, &mpi_bheader);
+    MPI_Type_commit(&mpi_bheader);
+
+    MPI_Aint fh_size, bh_size;
+    MPI_Type_get_extent(mpi_fheader, &lb, &fh_size);
+    MPI_Type_get_extent(mpi_bheader, &lb, &bh_size);
+    MPI_Offset bh_offset= fh_size + rank * bh_size;
+
     FileHeader  fheader; // to be filled with meta data read from file
     BlockHeader bheader; // to be filled with meta data read from file
 
+    // Read file header:
+    MPI_File_read_at_all(fh, 0, &fheader, 1, mpi_fheader, &st);
+    // Read block header:
+    MPI_File_read_at_all(fh, bh_offset, &bheader, 1, mpi_bheader, &st);
+ 
+    // Fill from file header:
+    Nx= fheader.Nx;
+    Ny= fheader.Ny;
+    tol= fheader.tol;
+    
+    // Fill from block header:
+    cbytes= bheader.compressed_bytes;
+    bufsize= bheader.bufsize;
+    MPI_Offset cbuf_offset= bheader.start;
+
     // 3.)
-    unsigned char* cbuf = nullptr; // allocate memory for reading file contents
-
+    // allocate memory for reading file contents
+    unsigned char* cbuf= new unsigned char[bufsize];
+    // Read compressed data into buffer cbuf
+    MPI_File_read_at_all(fh, cbuf_offset, cbuf, cbytes,
+                         MPI_UNSIGNED_CHAR, &st);
     // 4.)
-
+    // Close file
+    MPI_File_close(&fh);
 
     return cbuf;
 }

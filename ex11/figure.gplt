@@ -1,0 +1,11 @@
+set terminal postscript eps color enhanced; 
+set encoding utf8;
+set grid;
+set key right top;
+
+set xlabel 't [s]';
+set ylabel 'Approx. integral of {/Symbol r} on L x L centered on (0,0)'; 
+set ticslevel 0;
+
+set output 'figure1.eps'
+plot 'diagnostics_openmp.dat' i 0 u 1:2 w lines title 'L=1, N=256, {/Symbol D}t=10^{-6}';

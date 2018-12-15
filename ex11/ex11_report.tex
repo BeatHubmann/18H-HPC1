@@ -1,0 +1,82 @@
+\documentclass[11pt,a4paper]{article}
+
+% These are extra packages that you might need for writing the equations:
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{pdfpages}
+
+\lstset {language=C++,
+		 basicstyle=\ttfamily,
+         keywordstyle=\color{blue}\ttfamily,
+         stringstyle=\color{red}\ttfamily,
+         commentstyle=\color{purple}\ttfamily,
+         morecomment=[l][\color{magenta}]{\#},
+       	 basicstyle=\tiny}
+
+% You need the following package in order to include figures in your report:
+\usepackage{graphicx}
+
+% With this package you can set the size of the margins manually:
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\begin{document}
+
+% Enter the exercise number, your name and date here:
+\noindent\parbox{\linewidth}{
+ \parbox{.25\linewidth}{ \large HPCSE I, Exercise 11 }\hfill
+ \parbox{.5\linewidth}{\begin{center} \large Beat Hubmann \end{center}}\hfill
+ \parbox{.2\linewidth}{\begin{flushright} \large Dec 15, 2018 \end{flushright}}
+}
+\noindent\rule{\linewidth}{2pt}
+
+\includepdf[scale=0.8, pages=1, pagecommand=\section{Question 1: Diffusion in 2D using ADI scheme}\subsection{a)}]{q1a.pdf}
+
+Both steps end up as tridiagonal matrices, which makes them ideal for the proposed
+Thomas algorithm (aka tridiagonal matrix algorithm, TDMA). This is even more efficient than
+using spare matrices as all is needed are three onedimensional vectors which will even
+fit in the cache for a lot of problem sizes. The Thomas algorithm as such is inherently serial by design,
+but that isn't overly relevant considering its light weight in computation effort and memory requirement.
+
+\subsection{b)}
+
+Done as instructed and submitted. For illustrative purposes, the starting conditions are plotted in figure~
+\ref{fig:0_1}.
+
+\begin{figure}[ht]
+    \begin{center}
+    \includegraphics[scale=1.0]{density0000.png} 
+    \end{center}
+    \caption{$\rho$ on $\Omega= (-1,1) \times (-1, 1), L=2, N=256, \Delta t = 10^{-6}s, D=1$ with Dirichlet boundary conditions: $\partial\Omega = 0$}
+    \label{fig:0_1}
+    \end{figure}
+
+\subsection{c)}
+
+Done as instructed and submitted where doable. Doing the same using MPI would involve a lot of communication
+as the sweep directions alternates within each time step and thus would involve sharing/distributing data
+after each sweep. Considering the fact that solving the tridiagonal systems can be done efficiently in 
+terms of computations and memory, the communication overhead for MPI would hardly seem appropriate.
+
+
+\subsection{d)}
+
+The requested plot is shown in figure~\ref{fig:1}.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=1.0]{figure1.eps} 
+\end{center}
+\caption{approximative $\int_{\Omega}\rho$ for $\Omega= (-0.5,0.5) \times (-0.5, 0.5), L=1, N=256, \Delta t = 10^{-6}s, D=1$ with Dirichlet boundary conditions: $\partial\Omega = 0$}
+\label{fig:1}
+\end{figure}
+
+
+\end{document}

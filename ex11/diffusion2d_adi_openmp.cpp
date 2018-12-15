@@ -6,10 +6,8 @@
 #include <vector>
 #include <cmath>
 #include "timer.hpp"
-
-// TODO
-// Include OpenMP header
-// ...
+#include <iomanip>
+#include <omp.h>
 
 
 
@@ -52,7 +50,38 @@ public:
         // matrix A, where Ax=b is the corresponding
         // system to be solved
         // ...
+        alpha= D_ * dt_ / 2 / dr_ / dr_;
+        a_= std::vector<double>(Ntot_ - 1,       - alpha);
+        b_= std::vector<double>(Ntot_    , 1 + 2 * alpha);
+        c_= std::vector<double>(Ntot_ - 1,       - alpha);
     }
+
+
+    void ThomasAlgorithm(const std::vector<double>& a,
+                         const std::vector<double>& b,
+                         const std::vector<double>& c,
+                         const std::vector<double>& d,
+                         std::vector<double>& x)
+    {   
+        std::vector<double> c_star(Ntot_, 0.0);
+        std::vector<double> d_star(Ntot_, 0.0);
+        // first row
+        c_star[0]= c[0] / b[0];
+        d_star[0]= d[0] / b[0];
+
+        // rest of rows: forward sweep
+        for (int i= 1; i < Ntot_; i++)
+        {
+            const double div_fact= 1.0 / (b[i] - a[i] * c_star[i]);
+            c_star[i]= c[i] * div_fact;
+            d_star[i]= (d[i] - a[i] * d_star[i-1]) * div_fact;
+        }
+
+        // reverse sweep
+        for (int i= Ntot_ - 1; i > 0; i--)
+            x[i]= d_star[i] - c_star[i] * d[i + 1];
+    }
+
 
 
     void advance()
@@ -61,17 +90,42 @@ public:
         // Implement the ADI scheme for diffusion
         // and parallelize with OpenMP
         // ...
-
+#pragma omp parallel for collapse(2)
+        for (int j= 1; j <= N_; j++)
+            for (int i= 1; i <= N_; i++)
+                rho_tmp_[j * (N_ + 2) + i]= alpha           * rho_[(j - 1) * (N_ + 2) + i] 
+                                          + (1 - 2 * alpha) * rho_[ j      * (N_ + 2) + i]
+                                          + alpha           * rho_[(j + 1) * (N_ + 2) + i];
+        
 
         // ADI Step 1: Update rows at half timestep
         // Solve implicit system with Thomas algorithm
-        // ...
-
+        ThomasAlgorithm(a_, b_, c_, rho_tmp_, rho_);
 
         // ADI: Step 2: Update columns at full timestep
         // Solve implicit system with Thomas algorithm
-        // ...
+#pragma omp parallel for collapse(2)
+        for (int i= 1; i <= N_; i++)
+            for (int j= 1; j <= N_ ; j++)
+                rho_tmp_[j * (N_ + 2) + i]= alpha           * rho_[j * (N_ + 2) + i - 1] 
+                                          + (1 - 2 * alpha) * rho_[j * (N_ + 2) + i    ]
+                                          + alpha           * rho_[j * (N_ + 2) + i + 1];
+        
+        ThomasAlgorithm(a_, b_, c_, rho_tmp_, rho_);
+    }
 
+    void write_rho_to_file(const std::string& filename)
+    {
+        std::ofstream file(filename.c_str());
+        // Set highest possible precision, this way we are sure we are
+        file << std::setprecision(std::numeric_limits<long double>::digits10 + 1);
+
+        // Loop over vector and write output to file
+        for(int i = 0; i < (int)rho_.size(); ++i)
+            file << rho_[i] << " ";
+
+        file << std::endl;
+        // File closes automatically at end of scope!
     }
 
 
@@ -104,26 +158,28 @@ private:
     {
         /* Initialize rho(x, y, t=0) */
 
-        double bound = 0.25 * L_;
+        const double bound{0.5}; // for initial conditions
 
         // TODO:
         // Initialize field rho based on the
         // prescribed initial conditions
         // and parallelize with OpenMP
-        // ...
-        
-        for (int i = 1; i <= N_; ++i) {
-            for (int j = 1; j <= N_; ++j) {
-                
-            // ...
 
+        auto InBox= [bound, dr= dr_, L= L_](int i, int j){return (std::abs((i - 1) * dr - L / 2) < bound)
+                                                              && (std::abs((j - 1) * dr - L / 2) < bound);};
+
+#pragma omp parallel for collapse(2)
+        for (int j= 1; j <= N_; j++) 
+            for (int i= 1; i <= N_; i++)
+            {
+                if (InBox(i, j))
+                    rho_[j * (N_ + 2) + i]= 1.0;
+                else
+                    rho_[j * (N_ + 2) + i]= 0.0;
             }
-        }
-  
     }
 
-
-
+    double alpha;
     double D_, L_;
     int N_, Ntot_, real_N_;
     double dr_, dt_;
@@ -158,10 +214,14 @@ int main(int argc, char* argv[])
 
     timer t;
     t.start();
-    for (int step = 0; step < 10000; ++step) {
+    for (int step = 0; step < 10000; ++step)
+    {
         system.advance();
 #ifndef _PERF_
         system.compute_diagnostics(dt * step);
+        if (step % 1000 == 0)
+            system.write_rho_to_file("density" + std::to_string(step) + ".dat");
+
 #endif
     }
     t.stop();
@@ -171,6 +231,5 @@ int main(int argc, char* argv[])
 #ifndef _PERF_
     system.write_diagnostics("diagnostics_openmp.dat");
 #endif
-
     return 0;
 }

@@ -3,7 +3,7 @@ ifeq ($(UNAME_S),Linux)
 	CXX=g++
 endif
 ifeq ($(UNAME_S),Darwin)
-	CXX=g++-7
+	CXX=g++-8
 endif
 
 
@@ -14,7 +14,7 @@ endif
 
 
 # these are for running on Euler!
-CPPFLAGS+=-Wall -O3 -std=c++11
+CPPFLAGS+=-Wall -O3 -std=c++14
 CPPFLAGS_THREADS=$(CPPFLAGS) -fopenmp
 
 

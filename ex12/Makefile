@@ -1,9 +1,17 @@
-CXX=g++ -O3 -Wall -Wextra -std=c++11
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	CXX=g++
+endif
+ifeq ($(UNAME_S),Darwin)
+	CXX=g++-8
+endif
+
+CPPFLAGS=-O3 -Wall -Wextra -std=c++17 -fopenmp
 
 .PHONY: clean run plot
-
+ 
 pse2d: pse2d.cpp
-	$(CXX) $< -o $@
+	$(CXX) $(CPPFLAGS) $< -o $@
 
 clean:
 	rm -rf output
@@ -11,8 +19,8 @@ clean:
 
 run: pse2d
 	mkdir -p output
-	rm -f output/*
+	rm -f output/*u
 	./pse2d
 
 plot:
-	./plot.py
+	python3 ./plot.py

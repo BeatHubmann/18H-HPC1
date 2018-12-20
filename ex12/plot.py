@@ -22,8 +22,8 @@ for filename in datafiles:
     plt.clf()
     ax = plt.gca()
     ax.set_aspect('equal')
-    ax.set_xlim(0.0, 1.0);
-    ax.set_ylim(0.0, 1.0);
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.0)
     cmap = plt.cm.coolwarm
 
     # vmin and vmax is the range of phi values.

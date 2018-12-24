@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <omp.h>
 
-constexpr int SQRT_N = 64;           // Number of particles per dimension.
+constexpr int SQRT_N = 32;           // Number of particles per dimension.
 constexpr int N = SQRT_N * SQRT_N;   // Number of particles.
 constexpr double DOMAIN_SIZE = 1.0;  // Domain side length.
 constexpr double eps = DOMAIN_SIZE / SQRT_N;// = 0.05;         // Epsilon.
@@ -17,7 +17,7 @@ double y[N];
 double phi[N];
 
 // Helper function.
-double sqr(double x) { return x * x; }
+inline double sqr(double x) { return x * x; }
 
 /*
  * Initialize the particle positions and values.
@@ -53,12 +53,12 @@ void timestep(void) {
     {
         const auto delta_x= std::abs(x[i] - x[j]);
         const auto delta_y= std::abs(y[i] - y[j]);
-        const auto min_delta_x= std::min(delta_x, DOMAIN_SIZE - delta_x);
-        const auto min_delta_y= std::min(delta_y, DOMAIN_SIZE - delta_y);
-        return min_delta_x * min_delta_x + min_delta_y * min_delta_y;
+        const auto min_delta_x= std::min(delta_x, DOMAIN_SIZE - delta_x); // periodic boundaries
+        const auto min_delta_y= std::min(delta_y, DOMAIN_SIZE - delta_y); // periodic boundaries
+        return sqr(min_delta_x) + sqr(min_delta_y);
     };
 
-    const double factor{4 / (sqr(sqr(eps)) * M_PI)};
+    const auto factor{4 / (sqr(sqr(eps)) * M_PI)};
 
     auto kernel= [&sqr_dist_p, factor](int i, int j)
     {
